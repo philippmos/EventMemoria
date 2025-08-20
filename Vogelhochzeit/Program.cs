@@ -1,6 +1,10 @@
+using MudBlazor.Services;
 using Vogelhochzeit.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add MudBlazor services
+builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

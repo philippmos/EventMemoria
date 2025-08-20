@@ -1,0 +1,132 @@
+.birds-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #F4E8F6 0%, #E8D5EA 100%);
+    min-height: 100vh;
+}
+
+.birds-header {
+    background: linear-gradient(180deg, #2C2C3E 0%, #404054 100%);
+    border-radius: 0;
+}
+
+:root {
+    --wedding-rose: #C4A4C7;
+    --wedding-light-rose: #F4E8F6;
+    --wedding-medium-rose: #E8D5EA;
+    --wedding-dark: #2C2C3E;
+    --wedding-gray: #666666;
+    --wedding-light-gray: #E8E8E8;
+    --wedding-background: linear-gradient(135deg, #F4E8F6 0%, #E8D5EA 100%);
+}
+
+.birds-avatar {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.categories-container {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE und Edge */
+}
+
+.categories-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari und Opera */
+}
+
+.photo-grid-item {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.upload-button {
+    background: linear-gradient(135deg, var(--wedding-dark) 0%, #404054 100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-button:hover {
+    background: linear-gradient(135deg, #404054 0%, #5A5A6E 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.wedding-chip-active {
+    background-color: var(--wedding-rose) !important;
+    color: white !important;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(196, 164, 199, 0.3);
+}
+
+.wedding-chip-inactive {
+    background-color: var(--wedding-light-gray) !important;
+    color: var(--wedding-gray) !important;
+    border: 1px solid transparent;
+}
+
+.wedding-chip-inactive:hover {
+    background-color: var(--wedding-light-rose) !important;
+    border-color: var(--wedding-rose);
+}
+
+@media (max-width: 480px) {
+    .birds-title {
+        font-size: 2rem;
+        letter-spacing: 1.5px;
+    }
+    
+    .profile-description {
+        font-size: 0.9rem;
+        padding: 0 1rem;
+    }
+}
+
+.wedding-background {
+    background: linear-gradient(45deg, #ffffff 0%, var(--wedding-background) 100%);
+}
+
+.wedding-card {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: white;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.photo-grid-item {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.photo-grid-item:nth-child(1) { animation-delay: 0.05s; }
+.photo-grid-item:nth-child(2) { animation-delay: 0.1s; }
+.photo-grid-item:nth-child(3) { animation-delay: 0.15s; }
+.photo-grid-item:nth-child(4) { animation-delay: 0.2s; }
+.photo-grid-item:nth-child(5) { animation-delay: 0.25s; }
+.photo-grid-item:nth-child(6) { animation-delay: 0.3s; }
+.photo-grid-item:nth-child(7) { animation-delay: 0.35s; }
+.photo-grid-item:nth-child(8) { animation-delay: 0.4s; }
+
+.wedding-filter-button {
+    color: var(--wedding-gray);
+    transition: color 0.2s ease;
+}
+
+.wedding-filter-button:hover {
+    color: var(--wedding-rose);
+}
