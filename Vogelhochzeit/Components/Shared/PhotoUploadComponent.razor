@@ -11,14 +11,12 @@
                    style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
         <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
         <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-            @ButtonText
+            Hochladen
         </MudText>
     </MudPaper>
 </MudItem>
 
 @code {
-    [Parameter] public string ButtonText { get; set; } = "Hochladen";
-
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
         await Task.FromResult(true);
