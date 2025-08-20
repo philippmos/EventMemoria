@@ -1,3 +1,3 @@
 namespace Vogelhochzeit.Models;
 
-public record Photo(Guid Id = Guid.NewGuid(), string Url, string Category);
+public record Photo(Guid Id, string Url);

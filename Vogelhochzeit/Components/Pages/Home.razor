@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Vogelhochzeit.Components.Shared
+@using Vogelhochzeit.Models
 @rendermode InteractiveServer
 
 <PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
@@ -7,70 +9,32 @@
     <HeaderComponent Title="Vogelhochzeit" 
                      Names="Jasmin & Philipp" 
                      AvatarImagePath="/title-image.jpg"
-                     AvatarAltText="Laura & Daniel"
                      WelcomeMessage="Schön, dass ihr alle da seid! Lasst uns gemeinsam unvergessliche Erinnerungen schaffen ❤️❤️❤️" />
 
-    <CategoryChipsComponent Categories="@categories" 
-                            SelectedCategoryIndex="@selectedCategoryIndex"
-                            OnCategorySelected="@SelectCategory" />
-
-    <PhotoGridComponent Photos="@GetFilteredPhotos()" 
-                        OnPhotoClick="@OpenPhotoDialog"
-                        OnFileUpload="@HandleFileUpload" />
+    <PhotoGridComponent Photos="@allPhotos.ToList()" />
 </div>
 
 @code {
-    private int selectedCategoryIndex = 0;
-    private readonly string[] categories = { "Alle", "Hochzeit", "JGA" };
-    
-    private readonly Photo[] allPhotos = {
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "JGA"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit"),
-        new("https://placehold.co/400", "Hochzeit")
-    };
+    private readonly IEnumerable<Photo> allPhotos = [
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400"),
+        new(Guid.NewGuid(), "https://placehold.co/400")
+    ];
 
-    private Photo[] GetFilteredPhotos()
+    private IEnumerable<Photo> GetFilteredPhotos()
     {
-        if (selectedCategoryIndex == 0)
-        {
-            return allPhotos;
-        }
-        
-        var selectedCategory = categories[selectedCategoryIndex];
-        return allPhotos.Where(p => p.Category == selectedCategory).ToArray();
-    }
-
-    private void SelectCategory(int categoryIndex)
-    {
-        selectedCategoryIndex = categoryIndex;
-        StateHasChanged();
-    }
-
-    private async Task HandleFileUpload(InputFileChangeEventArgs e)
-    {
-        var files = e.GetMultipleFiles();
-        
-        foreach (var file in files)
-        {
-            Console.WriteLine($"Datei ausgewählt: {file.Name}, Größe: {file.Size} bytes");
-        }
-    }
-
-    private void OpenPhotoDialog(int photoIndex)
-    {
-        var photo = GetFilteredPhotos()[photoIndex];
-        Console.WriteLine($"Foto-Detail für {photo.Description} würde hier gezeigt werden");
+        return allPhotos.ToList();
     }
 }

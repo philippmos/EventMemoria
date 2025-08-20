@@ -3,9 +3,9 @@
 
 <MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
     <MudGrid Spacing="2">
-        <PhotoUploadComponent OnFileUpload="@OnFileUpload" />
+        <PhotoUploadComponent />
         
-        @for (int i = 0; i < Photos.Length; i++)
+        @for (int i = 0; i < Photos.Count; i++)
         {
             var photoIndex = i;
             var photo = Photos[photoIndex];
@@ -13,19 +13,12 @@
             <MudItem xs="6" sm="4" md="3">
                 <MudPaper Class="pa-0" 
                           Style="border-radius: 8px; overflow: hidden; cursor: pointer; position: relative;" 
-                          @onclick="() => OnPhotoClick.InvokeAsync(photoIndex)">
+                          @onclick="() => {}">
                     <MudImage Src="@photo.Url" 
                               Alt="Vogelhochzeit" 
                               Height="150" 
                               ObjectFit="ObjectFit.Cover" 
                               Style="width: 100%;" />
-
-                    <div style="position: absolute; bottom: 4px; left: 4px;">
-                        <MudChip T="string" Size="Size.Small" 
-                                    Style="background-color: rgba(44, 44, 62, 0.8); color: white; font-size: 0.7rem;">
-                            @photo.Category
-                        </MudChip>
-                    </div>
                 </MudPaper>
             </MudItem>
         }
@@ -33,7 +26,5 @@
 </MudPaper>
 
 @code {
-    [Parameter] public Photo[] Photos { get; set; } = Array.Empty<Photo>();
-    [Parameter] public EventCallback<int> OnPhotoClick { get; set; }
-    [Parameter] public EventCallback<InputFileChangeEventArgs> OnFileUpload { get; set; }
+    [Parameter] public List<Photo> Photos { get; set; } = [];
 }
