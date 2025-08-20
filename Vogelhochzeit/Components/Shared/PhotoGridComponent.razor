@@ -1,5 +1,6 @@
 @using Vogelhochzeit.Models
 @using Microsoft.AspNetCore.Components.Forms
+@inject IDialogService DialogService
 
 <MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
     <MudGrid Spacing="2">
@@ -11,9 +12,9 @@
             var photo = Photos[photoIndex];
 
             <MudItem xs="6" sm="4" md="3">
-                <MudPaper Class="pa-0" 
+                <MudPaper Class="pa-0 photo-grid-item" 
                           Style="border-radius: 8px; overflow: hidden; cursor: pointer; position: relative;" 
-                          @onclick="() => {}">
+                          @onclick="() => OpenGallery(photoIndex)">
                     <MudImage Src="@photo.Url" 
                               Alt="Vogelhochzeit" 
                               Height="150" 
@@ -27,4 +28,24 @@
 
 @code {
     [Parameter] public List<Photo> Photos { get; set; } = [];
+
+    private async Task OpenGallery(int initialIndex)
+    {
+        var parameters = new DialogParameters<ImageGalleryDialog>
+        {
+            { x => x.Photos, Photos },
+            { x => x.InitialIndex, initialIndex }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            FullWidth = true,
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullScreen = true
+        };
+
+        await DialogService.ShowAsync<ImageGalleryDialog>("", parameters, options);
+    }
 }

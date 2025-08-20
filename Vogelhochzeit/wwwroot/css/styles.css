@@ -46,6 +46,24 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+.photo-grid-item .photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.photo-grid-item:hover .photo-overlay {
+    opacity: 1;
+}
+
 .upload-button {
     background: linear-gradient(135deg, var(--wedding-dark) 0%, #404054 100%);
     transition: all 0.3s ease;

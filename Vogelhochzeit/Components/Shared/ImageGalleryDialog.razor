@@ -1,0 +1,107 @@
+@using Vogelhochzeit.Models
+@using MudBlazor
+@using MudBlazor.Services
+@inject IJSRuntime JSRuntime
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center">
+            <MudText Typo="Typo.h6">Bild @(CurrentIndex + 1) von @Photos.Count</MudText>
+            <MudSpacer />
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="d-flex flex-column align-center" style="min-height: 60vh;">
+            <div class="d-flex align-center justify-center" style="position: relative; width: 100%; max-width: 800px;">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                              Color="Color.Primary"
+                              Size="Size.Large"
+                              OnClick="PreviousImage"
+                              Disabled="@(Photos.Count <= 1)"
+                              Style="position: absolute; left: -50px; z-index: 10;" />
+                
+                <MudImage Src="@CurrentPhoto.Url"
+                         Alt="Vogelhochzeit Bild"
+                         Style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);" />
+                
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                              Color="Color.Primary"
+                              Size="Size.Large"
+                              OnClick="NextImage"
+                              Disabled="@(Photos.Count <= 1)"
+                              Style="position: absolute; right: -50px; z-index: 10;" />
+            </div>
+            
+            @if (Photos.Count > 1)
+            {
+                <div class="d-flex justify-center mt-4" style="gap: 8px; flex-wrap: wrap; max-width: 100%; overflow-x: auto;">
+                    @for (int i = 0; i < Photos.Count; i++)
+                    {
+                        var index = i;
+                        <MudPaper Class="@GetThumbnailClass(index)"
+                                 Style="cursor: pointer; transition: all 0.2s ease;"
+                                 @onclick="() => SetCurrentImage(index)">
+                            <MudImage Src="@Photos[index].Url"
+                                     Alt="Thumbnail"
+                                     Width="60"
+                                     Height="60"
+                                     ObjectFit="ObjectFit.Cover"
+                                     Style="border-radius: 4px;" />
+                        </MudPaper>
+                    }
+                </div>
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+    
+    [Parameter] public List<Photo> Photos { get; set; } = [];
+    [Parameter] public int InitialIndex { get; set; } = 0;
+    
+    private int CurrentIndex { get; set; }
+    private Photo CurrentPhoto => Photos.Count > 0 ? Photos[CurrentIndex] : new Photo(Guid.Empty, "");
+
+    protected override void OnInitialized()
+    {
+        CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
+    }
+
+    private void NextImage()
+    {
+        if (Photos.Count > 0)
+        {
+            CurrentIndex = (CurrentIndex + 1) % Photos.Count;
+        }
+    }
+
+    private void PreviousImage()
+    {
+        if (Photos.Count > 0)
+        {
+            CurrentIndex = CurrentIndex == 0 ? Photos.Count - 1 : CurrentIndex - 1;
+        }
+    }
+
+    private void SetCurrentImage(int index)
+    {
+        if (index >= 0 && index < Photos.Count)
+        {
+            CurrentIndex = index;
+        }
+    }
+
+    private string GetThumbnailClass(int index)
+    {
+        return index == CurrentIndex 
+            ? "pa-1" + " mud-elevation-4" + " mud-primary" 
+            : "pa-1" + " mud-elevation-1";
+    }
+
+    private void Close()
+    {
+        MudDialog?.Close();
+    }
+}
