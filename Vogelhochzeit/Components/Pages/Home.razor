@@ -4,115 +4,41 @@
 <PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
 
 <div class="birds-container">
-    <MudPaper Class="pa-6" Elevation="0" Style="background: linear-gradient(180deg, #2C2C3E 0%, #404054 100%); border-radius: 0;">
-        <div class="text-center">
-            <MudText Typo="Typo.h4" Class="mb-4" Style="color: white; font-weight: 300; letter-spacing: 2px;">
-                Vogelhochzeit
-            </MudText>
-            
-            <!-- Profilbild und Name -->
-            <MudAvatar Size="Size.Large" Class="mb-3" Style="width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.2);">
-                <MudImage Src="/title-image.jpg" Alt="Laura & Daniel" />
-            </MudAvatar>
-            
-            <MudText Typo="Typo.h5" Class="mb-2" Style="color: white; font-weight: 500;">
-                Jasmin & Philipp
-            </MudText>
-            
-            <MudText Typo="Typo.body2" Class="mb-4" Style="color: rgba(255,255,255,0.8); max-width: 280px; margin: 0 auto; font-size: 0.9rem;">
-                Schön, dass ihr alle da seid! Lasst uns gemeinsam unvergessliche Erinnerungen schaffen ❤️❤️❤️
-            </MudText>
-        </div>
-    </MudPaper>
+    <HeaderComponent Title="Vogelhochzeit" 
+                     Names="Jasmin & Philipp" 
+                     AvatarImagePath="/title-image.jpg"
+                     AvatarAltText="Laura & Daniel"
+                     WelcomeMessage="Schön, dass ihr alle da seid! Lasst uns gemeinsam unvergessliche Erinnerungen schaffen ❤️❤️❤️" />
 
-    <MudPaper Class="pa-4" Elevation="0" Style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px);">
-        <div class="categories-container d-flex gap-2 mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-            <MudChip T="string" Size="Size.Medium" 
-                     Style="@GetChipStyle(0)"
-                     @onclick="() => SelectCategory(0)">
-                Hochzeit
-            </MudChip>
-            <MudChip T="string" Size="Size.Medium" 
-                     Style="@GetChipStyle(3)"
-                     @onclick="() => SelectCategory(3)">
-                JGA
-            </MudChip>
-        </div>
+    <CategoryChipsComponent Categories="@categories" 
+                            SelectedCategoryIndex="@selectedCategoryIndex"
+                            OnCategorySelected="@SelectCategory" />
 
-    </MudPaper>
-
-    <MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
-        <MudGrid Spacing="2">
-            <MudItem xs="6" sm="4" md="3">
-                <MudPaper Class="d-flex flex-column justify-center align-center pa-4" 
-                         Height="150px" 
-                         Style="background: linear-gradient(135deg, #C4A4C7 0%, #A889AA 100%); position: relative; border-radius: 8px;">
-                    <InputFile id="fileUpload" 
-                               multiple 
-                               accept="image/*" 
-                               OnChange="@HandleFileUpload"
-                               style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
-                    <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-                        Hochladen
-                    </MudText>
-                </MudPaper>
-            </MudItem>
-
-            @for (int i = 0; i < GetFilteredPhotos().Length; i++)
-            {
-                var photo = GetFilteredPhotos()[i];
-
-                <MudItem xs="6" sm="4" md="3">
-                    <MudPaper Class="pa-0" 
-                              Style="border-radius: 8px; overflow: hidden; cursor: pointer; position: relative;" 
-                              @onclick="() => OpenPhotoDialog(i)">
-                        <MudImage Src="@photo.Url" 
-                                  Alt="@photo.Description" 
-                                  Height="150" 
-                                  ObjectFit="ObjectFit.Cover" 
-                                  Style="width: 100%;" />
-
-                        <div style="position: absolute; bottom: 4px; left: 4px;">
-                            <MudChip T="string" Size="Size.Small" 
-                                        Style="background-color: rgba(44, 44, 62, 0.8); color: white; font-size: 0.7rem;">
-                                @photo.Category
-                            </MudChip>
-                        </div>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
-    </MudPaper>
+    <PhotoGridComponent Photos="@GetFilteredPhotos()" 
+                        OnPhotoClick="@OpenPhotoDialog"
+                        OnFileUpload="@HandleFileUpload" />
 </div>
 
 @code {
-    public class Photo
-    {
-        public string Url { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Category { get; set; } = "";
-    }
-
     private int selectedCategoryIndex = 0;
-    private readonly string[] categories = { "Hochzeit", "JGA" };
+    private readonly string[] categories = { "Alle", "Hochzeit", "JGA" };
     
     private readonly Photo[] allPhotos = {
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitsgesellschaft", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Trauzeremonie", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Junggesellenabschied", Category = "JGA" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitsfeier", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" },
-        new() { Url = "https://placehold.co/400", Description = "Hochzeitstanz", Category = "Hochzeit" }
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "JGA"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit"),
+        new("https://placehold.co/400", "Hochzeit")
     };
 
     private Photo[] GetFilteredPhotos()
@@ -126,27 +52,6 @@
         return allPhotos.Where(p => p.Category == selectedCategory).ToArray();
     }
 
-    private string GetChipClass(int categoryIndex)
-    {
-        if (categoryIndex == selectedCategoryIndex)
-        {
-            return "mud-chip-color-primary";
-        }
-        return "mud-chip-outlined";
-    }
-
-    private string GetChipStyle(int categoryIndex)
-    {
-        if (categoryIndex == selectedCategoryIndex)
-        {
-            return "background-color: #C4A4C7; color: white; border-radius: 20px; min-width: fit-content; font-weight: 500;";
-        }
-        else
-        {
-            return "background-color: #E8E8E8; color: #666; border-radius: 20px; min-width: fit-content;";
-        }
-    }
-
     private void SelectCategory(int categoryIndex)
     {
         selectedCategoryIndex = categoryIndex;
@@ -155,35 +60,17 @@
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
-        // Hier wird die Upload-Logik implementiert
         var files = e.GetMultipleFiles();
         
         foreach (var file in files)
         {
-            // Beispiel: Datei-Verarbeitung
-            // var buffer = new byte[file.Size];
-            // await file.OpenReadStream().ReadAsync(buffer);
-            
             Console.WriteLine($"Datei ausgewählt: {file.Name}, Größe: {file.Size} bytes");
         }
     }
 
     private void OpenPhotoDialog(int photoIndex)
     {
-        var photo = GetFilteredPhotos()[0];
-        // Hier würde die Foto-Detail-Ansicht geöffnet werden
-        // Beispiel: DialogService.Show<PhotoDetailDialog>("Foto", new DialogParameters { ["Photo"] = photo });
-        
-        // Für Demo: Zeige eine Snackbar
-        // Snackbar.Add($"Foto-Detail für {photo.Description} würde hier gezeigt werden", Severity.Info);
-    }
-
-    private void OpenFilterDialog()
-    {
-        // Hier würde ein Filter-Dialog geöffnet werden
-        // Beispiel: DialogService.Show<FilterDialog>("Filter");
-        
-        // Für Demo: Zeige eine Snackbar  
-        // Snackbar.Add("Filter-Dialog würde hier geöffnet werden", Severity.Info);
+        var photo = GetFilteredPhotos()[photoIndex];
+        Console.WriteLine($"Foto-Detail für {photo.Description} würde hier gezeigt werden");
     }
 }
