@@ -34,10 +34,12 @@
 </MudItem>
 
 @code {
+    [Parameter] public EventCallback OnPhotosUploaded { get; set; }
+
     private bool isUploading = false;
     private string uploadProgress = "";
 
-    private const long MaxFileSize = 5 * 1024 * 1024;
+    private const long MaxFileSize = 150 * 1024 * 1024;
 
     private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
 
@@ -53,8 +55,12 @@
         isUploading = true;
         uploadProgress = "Vorbereitung...";
 
-        var uploadPath = Path.Combine(Environment.WebRootPath, "uploads");;
-
+        var uploadPath = Path.Combine(Environment.WebRootPath, "uploads");
+        
+        if (!Directory.Exists(uploadPath))
+        {
+            Directory.CreateDirectory(uploadPath);
+        }
 
         var totalFiles = eventArgs.FileCount;
         var processedFiles = 0;
@@ -78,25 +84,27 @@
 
             try
             {
-                var fileStream = browserFile.OpenReadStream(MaxFileSize);
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(browserFile.Name)}";
+                var targetFilePath = Path.Combine(uploadPath, fileName);
 
-                var extension = $"{Guid.NewGuid()}{Path.GetExtension(browserFile.Name)}";
-                var targetFilePath = Path.Combine(uploadPath, extension);
+                using var fileStream = browserFile.OpenReadStream(MaxFileSize);
+                using var destinationStream = new FileStream(targetFilePath, FileMode.Create);
 
-                var destinationStream = new FileStream(targetFilePath, FileMode.Create);
                 await fileStream.CopyToAsync(destinationStream);
-                destinationStream.Close();
+
                 uploadedFiles++;
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Fehler beim Hochladen von '{browserFile.Name}'", Severity.Error);
+                Snackbar.Add($"Fehler beim Hochladen von '{browserFile.Name}': {ex.Message}", Severity.Error);
             }
         }
 
         if (uploadedFiles > 0)
         {
             Snackbar.Add($"{uploadedFiles} Foto(s) erfolgreich hochgeladen", Severity.Success);
+            
+            await OnPhotosUploaded.InvokeAsync();
         }
         else
         {
@@ -105,7 +113,6 @@
 
         isUploading = false;
         uploadProgress = "";
-        StateHasChanged();
     }
     
     private bool IsFileValid(IBrowserFile file)

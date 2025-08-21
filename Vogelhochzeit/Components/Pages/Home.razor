@@ -12,7 +12,8 @@
                      AvatarImagePath="/title-image.jpg"
                      WelcomeMessage="Schön, dass ihr alle da seid! Lasst uns gemeinsam unvergessliche Erinnerungen schaffen ❤️❤️❤️" />
 
-    <PhotoGridComponent Photos="@allPhotos.ToList()" />
+    <PhotoGridComponent Photos="@allPhotos.ToList()" 
+                        OnPhotosUploaded="@RefreshPhotos" />
 </div>
 
 @code {
@@ -21,6 +22,12 @@
     protected override void OnInitialized()
     {
         LoadPhotosFromUploads();
+    }
+
+    private async Task RefreshPhotos()
+    {
+        LoadPhotosFromUploads();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void LoadPhotosFromUploads()

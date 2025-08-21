@@ -4,7 +4,7 @@
 
 <MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
     <MudGrid Spacing="2">
-        <PhotoUploadComponent />
+        <PhotoUploadComponent OnPhotosUploaded="@OnPhotosUploaded" />
         
         @for (int i = 0; i < Photos.Count; i++)
         {
@@ -28,6 +28,7 @@
 
 @code {
     [Parameter] public List<Photo> Photos { get; set; } = [];
+    [Parameter] public EventCallback OnPhotosUploaded { get; set; }
 
     private async Task OpenGallery(int initialIndex)
     {
