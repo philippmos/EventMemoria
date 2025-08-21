@@ -20,7 +20,7 @@
             <InputFile
                        multiple 
                        accept="image/*" 
-                       OnChange="@FileUploaded"
+                       OnChange="@HandleMultiFileUpload"
                        disabled="@isUploading"
                        style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
 
@@ -34,8 +34,6 @@
 </MudItem>
 
 @code {
-    [Parameter] public EventCallback<List<Photo>> OnPhotosUploaded { get; set; }
-
     private bool isUploading = false;
     private string uploadProgress = "";
 
@@ -45,7 +43,7 @@
 
 
 
-    public async Task FileUploaded(InputFileChangeEventArgs eventArgs)
+    private async Task HandleMultiFileUpload(InputFileChangeEventArgs eventArgs)
     {
         if (eventArgs.FileCount == 0)
         {
@@ -72,7 +70,7 @@
                 continue;
             }
 
-            if (!IsValidFile(browserFile))
+            if (!IsFileValid(browserFile))
             {
                 Snackbar.Add($"Datei '{browserFile.Name}' übersprungen: Ungültiges Format oder zu groß", Severity.Warning);
                 continue;
@@ -107,24 +105,22 @@
 
         isUploading = false;
         uploadProgress = "";
+        StateHasChanged();
     }
     
-    private bool IsValidFile(IBrowserFile file)
+    private bool IsFileValid(IBrowserFile file)
     {
-        // Dateigröße prüfen
         if (file.Size > MaxFileSize)
         {
             return false;
         }
         
-        // Dateierweiterung prüfen
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
         if (!AllowedExtensions.Contains(extension))
         {
             return false;
         }
         
-        // Content-Type prüfen
         if (!file.ContentType.StartsWith("image/"))
         {
             return false;

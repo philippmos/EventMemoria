@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Vogelhochzeit.Components.Shared
 @using Vogelhochzeit.Models
+@inject IWebHostEnvironment WebHostEnvironment
 @rendermode InteractiveServer
 
 <PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
@@ -15,21 +16,27 @@
 </div>
 
 @code {
-    private readonly IEnumerable<Photo> allPhotos = [
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/600x1200"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400"),
-        new(Guid.NewGuid(), "https://placehold.co/400")
-    ];
+    private List<Photo> allPhotos = [];
+
+    protected override void OnInitialized()
+    {
+        LoadPhotosFromUploads();
+    }
+
+    private void LoadPhotosFromUploads()
+    {
+        var uploadsPath = Path.Combine(WebHostEnvironment.WebRootPath, "uploads");
+        
+        var supportedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+        var imageFiles = Directory.GetFiles(uploadsPath)
+            .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+            .ToArray();
+
+        allPhotos = imageFiles.Select(file => 
+        {
+            var fileName = Path.GetFileName(file);
+            var webPath = $"/uploads/{fileName}";
+            return new Photo(Guid.NewGuid(), webPath);
+        }).ToList();
+    }
 }
