@@ -1,7 +1,7 @@
 .birds-container {
     max-width: 480px;
     margin: 0 auto;
-    background: linear-gradient(135deg, #F4E8F6 0%, #E8D5EA 100%);
+    background: linear-gradient(135deg, #E5D1D0 0%, #E5D1D0 100%);
     min-height: 100vh;
 }
 
@@ -11,13 +11,13 @@
 }
 
 :root {
-    --wedding-rose: #C4A4C7;
-    --wedding-light-rose: #F4E8F6;
-    --wedding-medium-rose: #E8D5EA;
+    --wedding-rose: #A86C6C;
+    --wedding-light-rose: #E5D1D0;
+    --wedding-medium-rose: #E5D1D0;
     --wedding-dark: #2C2C3E;
     --wedding-gray: #666666;
     --wedding-light-gray: #E8E8E8;
-    --wedding-background: linear-gradient(135deg, #F4E8F6 0%, #E8D5EA 100%);
+    --wedding-background: linear-gradient(135deg, #E5D1D0 0%, #E5D1D0 100%);
 }
 
 .birds-avatar {
@@ -80,7 +80,7 @@
     background-color: var(--wedding-rose) !important;
     color: white !important;
     font-weight: 500;
-    box-shadow: 0 2px 8px rgba(196, 164, 199, 0.3);
+    box-shadow: 0 2px 8px rgba(168, 108, 108, 0.3);
 }
 
 .wedding-chip-inactive {
@@ -107,7 +107,7 @@
 }
 
 .wedding-background {
-    background: linear-gradient(45deg, #ffffff 0%, var(--wedding-background) 100%);
+    background: linear-gradient(45deg, #ffffff 0%, #E5D1D0 100%);
 }
 
 .wedding-card {

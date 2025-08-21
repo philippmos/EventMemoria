@@ -2,8 +2,8 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject IDialogService DialogService
 
-<MudPaper Class="pa-3" Elevation="0" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
-    <MudGrid Spacing="2">
+<MudPaper Class="pa-3" Elevation="0">
+    <MudGrid Spacing="3">
         <PhotoUploadComponent OnPhotosUploaded="@OnPhotosUploaded" />
         
         @for (int i = 0; i < Photos.Count; i++)
@@ -12,15 +12,14 @@
             var photo = Photos[photoIndex];
 
             <MudItem xs="6" sm="4" md="3">
-                <MudPaper Class="pa-0 photo-grid-item" 
-                          Style="border-radius: 8px; overflow: hidden; cursor: pointer; position: relative;" 
-                          @onclick="() => OpenGallery(photoIndex)">
+
                     <MudImage Src="@photo.Url" 
                               Alt="Vogelhochzeit" 
                               Height="150" 
-                              ObjectFit="ObjectFit.Cover" 
-                              Style="width: 100%;" />
-                </MudPaper>
+                              ObjectFit="ObjectFit.Cover"
+                              Style="border-radius: 8px; width: 100%; cursor: pointer;"
+                              @onclick="() => OpenGallery(photoIndex)" />
+
             </MudItem>
         }
     </MudGrid>
