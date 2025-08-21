@@ -61,15 +61,15 @@ Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeits
 
 ### Fotos hochladen
 
-1. Klicken Sie auf das **"Hochladen"**-Feld in der Fotogalerie
-2. Wählen Sie eine oder mehrere Bilddateien aus
+1. Klicken auf das **"Hochladen"**-Feld in der Fotogalerie
+2. Wählen eine oder mehrere Bilddateien aus
 3. Die Fotos werden automatisch verarbeitet und der Galerie hinzugefügt
 
 ### Fotos betrachten
 
-- Klicken Sie auf ein beliebiges Foto in der Galerie
+- Klicke auf ein beliebiges Foto in der Galerie
 - Das Foto öffnet sich in einem Vollbild-Dialog
-- Navigieren Sie mit den Pfeiltasten oder Schaltflächen durch die Galerie
+- Navigieren mit den Pfeiltasten oder Schaltflächen durch die Galerie
 
 ### Unterstützte Dateiformate
 
@@ -83,17 +83,6 @@ Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeits
 
 ## Konfiguration
 
-### Anpassung des Titels und der Namen
-
-In `Components/Pages/Home.razor` können Sie die Hochzeitsdaten anpassen:
-
-```razor
-<HeaderComponent Title="Vogelhochzeit" 
-                 Names="Jasmin & Philipp" 
-                 AvatarImagePath="/title-image.jpg"
-                 WelcomeMessage="Schön, dass ihr alle da seid! Lasst uns gemeinsam unvergessliche Erinnerungen schaffen ❤️❤️❤️" />
-```
-
 ### Styling anpassen
 
 Individuelle Styles können in `wwwroot/css/styles.css` hinzugefügt werden.
@@ -106,7 +95,7 @@ Das Projekt nutzt eine modulare Struktur. Neue Komponenten können im `Component
 
 ### MudBlazor Dokumentation
 
-Die Anwendung nutzt [MudBlazor](https://mudblazor.com/) für die UI-Komponenten. Weitere Komponenten und Styling-Optionen finden Sie in der offiziellen Dokumentation.
+Die Anwendung nutzt [MudBlazor](https://mudblazor.com/) für die UI-Komponenten. Weitere Komponenten und Styling-Optionen finden sich in der offiziellen Dokumentation.
 
 ### Hot Reload
 
