@@ -1,24 +1,137 @@
 @using Microsoft.AspNetCore.Components.Forms
+@using Vogelhochzeit.Models
+@inject IWebHostEnvironment Environment
+@inject ISnackbar Snackbar
 
 <MudItem xs="6" sm="4" md="3">
     <MudPaper Class="d-flex flex-column justify-center align-center pa-4" 
               Height="150px" 
               Style="background: linear-gradient(135deg, #C4A4C7 0%, #A889AA 100%); position: relative; border-radius: 8px;">
-        <InputFile id="fileUpload" 
-                   multiple 
-                   accept="image/*" 
-                   OnChange="@HandleFileUpload"
-                   style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
-        <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
-        <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-            Hochladen
-        </MudText>
+        
+        @if (isUploading)
+        {
+            <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
+            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
+                @uploadProgress
+            </MudText>
+        }
+        else
+        {
+            <InputFile
+                       multiple 
+                       accept="image/*" 
+                       OnChange="@FileUploaded"
+                       disabled="@isUploading"
+                       style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
+
+
+            <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
+            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
+                Hochladen
+            </MudText>
+        }
     </MudPaper>
 </MudItem>
 
 @code {
-    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    [Parameter] public EventCallback<List<Photo>> OnPhotosUploaded { get; set; }
+
+    private bool isUploading = false;
+    private string uploadProgress = "";
+
+    // Maximale Dateigröße: 5MB
+    private const long MaxFileSize = 5 * 1024 * 1024;
+
+    // Erlaubte Dateierweiterungen
+    private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
+
+
+
+    public async Task FileUploaded(InputFileChangeEventArgs eventArgs)
     {
-        await Task.FromResult(true);
+        if (eventArgs.FileCount == 0)
+        {
+            return;
+        }
+
+        isUploading = true;
+        uploadProgress = "Vorbereitung...";
+
+        var uploadPath = Path.Combine(Environment.WebRootPath, "uploads");;
+
+
+        var totalFiles = eventArgs.FileCount;
+        var processedFiles = 0;
+        var uploadedFiles = 0;
+
+        foreach( var browserFile in eventArgs.GetMultipleFiles())
+        {
+            processedFiles++;
+            uploadProgress = $"Verarbeite Datei {processedFiles} von {totalFiles}...";
+
+            if (browserFile is null)
+            {
+                continue;
+            }
+
+            if (!IsValidFile(browserFile))
+            {
+                Snackbar.Add($"Datei '{browserFile.Name}' übersprungen: Ungültiges Format oder zu groß", Severity.Warning);
+                continue;
+            }
+
+            try
+            {
+                var fileStream = browserFile.OpenReadStream(MaxFileSize);
+
+                var extension = $"{Guid.NewGuid()}{Path.GetExtension(browserFile.Name)}";
+                var targetFilePath = Path.Combine(uploadPath, extension);
+
+                var destinationStream = new FileStream(targetFilePath, FileMode.Create);
+                await fileStream.CopyToAsync(destinationStream);
+                destinationStream.Close();
+                uploadedFiles++;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Fehler beim Hochladen von '{browserFile.Name}'", Severity.Error);
+            }
+        }
+
+        if (uploadedFiles > 0)
+        {
+            Snackbar.Add($"{uploadedFiles} Foto(s) erfolgreich hochgeladen", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Keine Fotos hochgeladen", Severity.Warning);
+        }
+
+        isUploading = false;
+        uploadProgress = "";
+    }
+    
+    private bool IsValidFile(IBrowserFile file)
+    {
+        // Dateigröße prüfen
+        if (file.Size > MaxFileSize)
+        {
+            return false;
+        }
+        
+        // Dateierweiterung prüfen
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            return false;
+        }
+        
+        // Content-Type prüfen
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            return false;
+        }
+        
+        return true;
     }
 }
