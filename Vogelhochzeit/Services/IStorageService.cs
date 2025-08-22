@@ -1,11 +1,9 @@
-﻿namespace Vogelhochzeit.Services;
+﻿using Vogelhochzeit.Models;
+
+namespace Vogelhochzeit.Services;
 
 public interface IStorageService
 {
-    Task<string> UploadFileAsync(Stream fileStream, string fileName, string containerName, string? contentType = null);
-    Task<Stream> DownloadFileAsync(string blobName, string containerName);
-    Task<bool> DeleteFileAsync(string blobName, string containerName);
-    Task<List<string>> ListFilesAsync(string containerName, string? prefix = null);
-    Task<bool> FileExistsAsync(string blobName, string containerName);
-    Task<string> GetFileUrlAsync(string blobName, string containerName);
+    Task<string> UploadFileAsync(Stream fileStream, string fileName,string? contentType = null);
+    Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24, string? prefix = null);
 }

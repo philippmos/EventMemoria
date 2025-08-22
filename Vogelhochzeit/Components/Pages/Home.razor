@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using Vogelhochzeit.Components.Shared
 @using Vogelhochzeit.Models
-@inject IWebHostEnvironment WebHostEnvironment
 @rendermode InteractiveServer
 
 <PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
@@ -12,38 +11,32 @@
                      AvatarImagePath="/title-image.jpg"
                      WelcomeMessage="" />
 
-    <PhotoGridComponent Photos="@allPhotos.ToList()" 
-                        OnPhotosUploaded="@RefreshPhotos" />
+    <PhotoUploadComponent OnPhotosUploaded="@RefreshVirtualizedGrid" />
+    <VirtualizedPhotoGrid @ref="virtualizedGrid"
+                          OnPhotosLoaded="@OnPhotosLoaded" />
 </div>
 
 @code {
-    private List<Photo> allPhotos = [];
-
-    protected override void OnInitialized()
-    {
-        LoadPhotosFromUploads();
-    }
+    private VirtualizedPhotoGrid? virtualizedGrid;
+    private int totalPhotosCount = 0;
 
     private async Task RefreshPhotos()
     {
-        LoadPhotosFromUploads();
         await InvokeAsync(StateHasChanged);
     }
 
-    private void LoadPhotosFromUploads()
+    private async Task RefreshVirtualizedGrid()
     {
-        var uploadsPath = Path.Combine(WebHostEnvironment.WebRootPath, "uploads");
-        
-        var supportedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
-        var imageFiles = Directory.GetFiles(uploadsPath)
-            .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
-            .ToArray();
-
-        allPhotos = imageFiles.Select(file => 
+        if (virtualizedGrid != null)
         {
-            var fileName = Path.GetFileName(file);
-            var webPath = $"/uploads/{fileName}";
-            return new Photo(Guid.NewGuid(), webPath);
-        }).ToList();
+            await virtualizedGrid.RefreshPhotos();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPhotosLoaded(List<Photo> photos)
+    {
+        totalPhotosCount = photos.Count;
+        StateHasChanged();
     }
 }

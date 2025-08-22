@@ -1,17 +1,25 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Options;
+using Vogelhochzeit.Common.Settings;
+using Vogelhochzeit.Models;
 
 namespace Vogelhochzeit.Services;
 
-public class BlobStorageService(BlobServiceClient blobServiceClient, ILogger<BlobStorageService> logger) : IStorageService
+public class BlobStorageService(
+    BlobServiceClient blobServiceClient,
+    IOptions<ImageOptions> imageOptions,
+    ILogger<BlobStorageService> logger) : IStorageService
 {
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string containerName, string? contentType = null)
+    private readonly string _containerName = imageOptions.Value.ContainerName;
+
+    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string? contentType = null)
     {
         try
         {
-            var containerClient = await GetOrCreateContainerAsync(containerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
             
-            var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+            var uniqueFileName = Guid.NewGuid().ToString();
             var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
             var blobHttpHeaders = new BlobHttpHeaders();
@@ -22,7 +30,13 @@ public class BlobStorageService(BlobServiceClient blobServiceClient, ILogger<Blo
 
             var uploadOptions = new BlobUploadOptions
             {
-                HttpHeaders = blobHttpHeaders
+                HttpHeaders = blobHttpHeaders,
+                Tags = new Dictionary<string, string>
+                {
+                    { "Author", "Philipp Moser" },
+                    { "FileName", fileName },
+                    { "UploadedAt", DateTime.UtcNow.ToString("o") }
+                },
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
@@ -38,131 +52,64 @@ public class BlobStorageService(BlobServiceClient blobServiceClient, ILogger<Blo
         }
     }
 
-    public async Task<Stream> DownloadFileAsync(string blobName, string containerName)
+    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24, string? prefix = null)
     {
         try
         {
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            var blobClient = containerClient.GetBlobClient(blobName);
-
-            if (!await blobClient.ExistsAsync())
-            {
-                throw new FileNotFoundException($"Blob {blobName} not found");
-            }
-
-            var response = await blobClient.DownloadStreamingAsync();
-            
-            logger.LogInformation("File {BlobName} successfully downloaded", blobName);
-            
-            return response.Value.Content;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error downloading file {BlobName}", blobName);
-            throw;
-        }
-    }
-
-    public async Task<bool> DeleteFileAsync(string blobName, string containerName)
-    {
-        try
-        {
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            var blobClient = containerClient.GetBlobClient(blobName);
-
-            var response = await blobClient.DeleteIfExistsAsync();
-            
-            if (response.Value)
-            {
-                logger.LogInformation("File {BlobName} successfully deleted", blobName);
-            }
-            else
-            {
-                logger.LogWarning("File {BlobName} not found or already deleted", blobName);
-            }
-            
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error deleting file {BlobName}", blobName);
-            throw;
-        }
-    }
-
-    public async Task<List<string>> ListFilesAsync(string containerName, string? prefix = null)
-    {
-        try
-        {
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
             
             if (!await containerClient.ExistsAsync())
             {
-                return new List<string>();
+                return new PagedResult<Photo>();
             }
 
-            var blobs = new List<string>();
+            var allBlobs = new List<BlobItem>();
             
-            await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix))
+            await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, traits: BlobTraits.Metadata))
             {
-                blobs.Add(blobItem.Name);
+                if (IsImageFile(blobItem.Name))
+                {
+                    allBlobs.Add(blobItem);
+                }
             }
 
-            logger.LogInformation("Found files in container {ContainerName}: {Count}", containerName, blobs.Count);
+            allBlobs = allBlobs.OrderByDescending(b => b.Properties.LastModified).ToList();
+
+            var totalCount = allBlobs.Count;
+            var skip = (page - 1) * pageSize;
+            var pagedBlobs = allBlobs.Skip(skip).Take(pageSize).ToList();
+
+            var photos = new List<Photo>();
             
-            return blobs;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error listing files in container {ContainerName}", containerName);
-            throw;
-        }
-    }
-
-    public async Task<bool> FileExistsAsync(string blobName, string containerName)
-    {
-        try
-        {
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            var blobClient = containerClient.GetBlobClient(blobName);
-
-            var response = await blobClient.ExistsAsync();
-            return response.Value;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking file existence {BlobName}", blobName);
-            throw;
-        }
-    }
-
-    public async Task<string> GetFileUrlAsync(string blobName, string containerName)
-    {
-        try
-        {
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            var blobClient = containerClient.GetBlobClient(blobName);
-
-            if (!await blobClient.ExistsAsync())
+            foreach (var blobItem in pagedBlobs)
             {
-                throw new FileNotFoundException($"Blob {blobName} not found");
+                var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                var photo = new Photo
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileName = blobItem.Name,
+                    Url = blobClient.Uri.ToString(),
+                    UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
+                    FileSize = blobItem.Properties.ContentLength ?? 0
+                };
+                photos.Add(photo);
             }
 
-            return blobClient.Uri.ToString();
+            logger.LogInformation("Retrieved page {Page} with {Count} photos from container {ContainerName}. Total: {TotalCount}", 
+                page, photos.Count, _containerName, totalCount);
+
+            return new PagedResult<Photo>(photos, page, pageSize, totalCount);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting file URL {BlobName}", blobName);
+            logger.LogError(ex, "Error getting paged photos from container {ContainerName}", _containerName);
             throw;
         }
     }
 
-    private async Task<BlobContainerClient> GetOrCreateContainerAsync(string containerName)
+    private bool IsImageFile(string fileName)
     {
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-        
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
-        
-        return containerClient;
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return imageOptions.Value.AllowedFileTypes.Contains(extension);
     }
 }

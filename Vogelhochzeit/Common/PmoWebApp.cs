@@ -1,4 +1,6 @@
 ﻿using MudBlazor.Services;
+using System.Runtime.CompilerServices;
+using Vogelhochzeit.Common.Settings;
 using Vogelhochzeit.Components;
 
 namespace Vogelhochzeit.Common;
@@ -15,6 +17,7 @@ public static class PmoWebApp
             .AddInteractiveServerComponents();
 
         builder.Services.AddServices(builder.Configuration);
+        builder.Services.AddConfigurations(builder.Configuration);
 
         return builder;
     }
@@ -38,5 +41,12 @@ public static class PmoWebApp
             .AddInteractiveServerRenderMode();
 
         return app;
+    }
+
+    private static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<ImageOptions>(configuration.GetSection(nameof(ImageOptions)));
+
+        return services;
     }
 }

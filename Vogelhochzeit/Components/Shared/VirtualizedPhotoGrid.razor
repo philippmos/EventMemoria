@@ -1,0 +1,285 @@
+@using Microsoft.Extensions.Options
+@using Vogelhochzeit.Common.Settings
+@using Vogelhochzeit.Models
+@using Vogelhochzeit.Services
+@inject IStorageService StorageService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    @if (isLoading)
+    {
+        <MudStack Spacing="3" Class="pa-4">
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Align="Align.Center">Lade Fotos...</MudText>
+        </MudStack>
+    }
+    else if (allPhotos.Any())
+    {
+        <MudStack Spacing="2" Class="pa-2">
+
+            <MudPaper Class="pa-3" Elevation="1">
+                <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    
+                    <MudStack Row Spacing="2">
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            Fotos pro Zeile:
+                        </MudText>
+                        <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+                            <MudButton OnClick="() => SetPhotosPerRow(2)"
+                                       Variant="@(PhotosPerRow == 2 ? Variant.Filled : Variant.Outlined)">2</MudButton>
+                            <MudButton OnClick="() => SetPhotosPerRow(4)"
+                                       Variant="@(PhotosPerRow == 4 ? Variant.Filled : Variant.Outlined)">4</MudButton>
+                            <MudButton OnClick="() => SetPhotosPerRow(6)" 
+                                      Variant="@(PhotosPerRow == 6 ? Variant.Filled : Variant.Outlined)">6</MudButton>
+                            <MudButton OnClick="() => SetPhotosPerRow(8)" 
+                                      Variant="@(PhotosPerRow == 8 ? Variant.Filled : Variant.Outlined)">8</MudButton>
+                            <MudButton OnClick="() => SetPhotosPerRow(12)" 
+                                      Variant="@(PhotosPerRow == 12 ? Variant.Filled : Variant.Outlined)">12</MudButton>
+                        </MudButtonGroup>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+            
+            <div style="height: 70vh; overflow-y: auto;">
+                <MudVirtualize Items="@photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="3">
+                    <div class="photo-row" style="display: flex; gap: 12px; padding: 6px; justify-content: flex-start; flex-wrap: nowrap;">
+                        @foreach (var photo in row)
+                        {
+                            <div class="photo-container" style="@GetPhotoContainerStyle()">
+                                <MudCard Class="photo-card-virtual" Style="height: 100%; transition: all 0.2s ease;">
+                                    <MudCardContent Class="pa-1" Style="height: 100%;">
+                                        <div class="photo-image-container" style="height: @(GetRowHeight() - 60)px; position: relative; overflow: hidden; border-radius: 8px; cursor: pointer;"
+                                             @onclick="() => OpenGallery(GetPhotoGlobalIndex(photo))">
+                                            
+                                            @if (!loadedImages.Contains(photo.Id))
+                                            {
+                                                <div class="photo-placeholder" style="width: 100%; height: 100%; background: linear-gradient(45deg, #f0f0f0, #e0e0e0); display: flex; align-items: center; justify-content: center;">
+                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                                </div>
+                                            }
+                                            
+                                            <MudImage 
+                                                Src="@photo.Url"
+                                                Alt="@(photo.Alt ?? "Foto")"
+                                                ObjectFit="ObjectFit.Cover"
+                                                Style="@(GetImageStyle(photo.Id))"
+                                                @onload="() => OnImageLoad(photo.Id)" />
+                                        </div>
+                                        
+                                        <MudText Typo="Typo.caption" Class="mt-1 text-truncate" Style="font-size: 0.7rem;">
+                                            @GetShortFileName(photo.FileName)
+                                        </MudText>
+                                    </MudCardContent>
+                                </MudCard>
+                            </div>
+                        }
+                    </div>
+                </MudVirtualize>
+            </div>
+        </MudStack>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info" Class="ma-4">
+            Keine Fotos vorhanden. Starte mit dem Hochladen!
+        </MudAlert>
+    }
+</MudContainer>
+
+<style>
+    .photo-card-virtual:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    
+    .photo-image-container:hover {
+        transform: scale(1.02);
+    }
+    
+    .photo-placeholder {
+        animation: pulse 1.5s ease-in-out infinite alternate;
+    }
+    
+    @@keyframes pulse {
+        from { opacity: 0.6; }
+        to { opacity: 1; }
+    }
+</style>
+
+@code {
+
+    [Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
+
+    [Inject] private IOptions<ImageOptions> ImageOptions { get; set; } = default!;
+
+    private int PhotosPerRow { get; set; }
+
+    private List<Photo> allPhotos = new();
+    private List<List<Photo>> photoRows = new();
+    private HashSet<string> loadedImages = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+		PhotosPerRow = ImageOptions.Value.DefaultPhotosPerRow;
+
+        await LoadAllPhotos();
+    }
+
+    private async Task LoadAllPhotos()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            var result = await StorageService.GetPhotosPagedAsync(1, 100);
+            allPhotos = result.Items;
+
+            CreatePhotoRows();
+
+            if (OnPhotosLoaded.HasDelegate)
+            {
+                await OnPhotosLoaded.InvokeAsync(allPhotos);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler beim Laden der Fotos: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CreatePhotoRows()
+    {
+        photoRows.Clear();
+
+        for (int i = 0; i < allPhotos.Count; i += PhotosPerRow)
+        {
+            var rowPhotos = allPhotos.Skip(i).Take(PhotosPerRow).ToList();
+            photoRows.Add(rowPhotos);
+        }
+    }
+
+    private void SetPhotosPerRow(int count)
+    {
+        if (PhotosPerRow != count)
+        {
+            PhotosPerRow = count;
+            CreatePhotoRows();
+            StateHasChanged();
+        }
+    }
+
+    private int GetRowHeight()
+    {
+        return PhotosPerRow switch
+        {
+            2 => 400,
+            4 => 300,
+            6 => 250,
+            8 => 200,
+            12 => 150,
+            _ => 250
+        };
+    }
+
+    private string GetPhotoContainerStyle()
+    {
+        var width = PhotosPerRow switch
+        {
+            2 => "calc(50% - 9px)",
+            4 => "calc(25% - 9px)",
+            6 => "calc(16.666% - 10px)",
+            8 => "calc(12.5% - 10.5px)",
+            12 => "calc(8.333% - 11px)",
+            _ => "calc(16.666% - 10px)"
+        };
+
+        return $"width: {width}; min-width: {width}; flex-shrink: 0;";
+    }
+
+    private string GetImageStyle(string photoId)
+    {
+        var baseStyle = "width: 100%; height: 100%; object-fit: cover; transition: all 0.3s ease;";
+
+        if (!loadedImages.Contains(photoId))
+        {
+            baseStyle += " opacity: 0;";
+        }
+        else
+        {
+            baseStyle += " opacity: 1;";
+        }
+
+        return baseStyle;
+    }
+
+    private void OnImageLoad(string photoId)
+    {
+        if (!loadedImages.Contains(photoId))
+        {
+            loadedImages.Add(photoId);
+            StateHasChanged();
+        }
+    }
+
+    private int GetPhotoGlobalIndex(Photo photo)
+    {
+        return allPhotos.FindIndex(p => p.Id == photo.Id);
+    }
+
+    private string GetShortFileName(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName)) return "";
+
+        var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+        return nameWithoutExtension.Length > 15 
+            ? nameWithoutExtension.Substring(0, 15) + "..." 
+            : nameWithoutExtension;
+    }
+
+    private async Task OpenGallery(int initialIndex)
+    {
+        if (!allPhotos.Any() || initialIndex < 0)
+        {
+            return;
+        }
+
+        var pageSize = 100;
+        var currentPage = (initialIndex / pageSize) + 1;
+        var startIndex = (currentPage - 1) * pageSize;
+        var galleryPhotos = allPhotos.Skip(startIndex).Take(pageSize).ToList();
+        var adjustedIndex = Math.Max(0, initialIndex - startIndex);
+
+        var parameters = new DialogParameters<ImageGalleryDialog>
+        {
+            { x => x.Photos, galleryPhotos },
+            { x => x.InitialIndex, adjustedIndex },
+            { x => x.CurrentPage, currentPage },
+            { x => x.TotalPages, (int)Math.Ceiling((double)allPhotos.Count / pageSize) }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            FullWidth = true,
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            FullScreen = true
+        };
+
+        await DialogService.ShowAsync<ImageGalleryDialog>("Fotogalerie", parameters, options);
+    }
+
+    public async Task RefreshPhotos()
+    {
+        loadedImages.Clear();
+        await LoadAllPhotos();
+    }
+}
