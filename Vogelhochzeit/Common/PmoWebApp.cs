@@ -14,6 +14,8 @@ public static class PmoWebApp
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        builder.Services.AddServices(builder.Configuration);
+
         return builder;
     }
 
