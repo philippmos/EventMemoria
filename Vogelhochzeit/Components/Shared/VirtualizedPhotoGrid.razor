@@ -4,7 +4,6 @@
 @using Vogelhochzeit.Models
 @using Vogelhochzeit.Services
 @using Vogelhochzeit.Services.Interfaces
-@using Vogelhochzeit.Services.Interfaces
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -19,8 +18,8 @@
     else if (_allPhotos.Any())
     {
         <MudStack Spacing="2" Class="pa-2">
-            <PhotoGridControlsComponent _photosPerRow="@_photosPerRow" 
-                                        On_photosPerRowChanged="@SetPhotosPerRowAsync" />
+            <PhotoGridControlsComponent PhotosPerRow="@_photosPerRow"
+                                        OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
             
             <div style="height: @ApplicationConstants.Ui.GridContainerHeight; overflow-y: auto;">
                 <MudVirtualize Items="@_photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="@ApplicationConstants.Pagination.VirtualizationOverscanCount">
@@ -28,7 +27,7 @@
                         @foreach (var photo in row)
                         {
                             <PhotoCardComponent Photo="@photo"
-                                                _photosPerRow="@_photosPerRow"
+                                                PhotosPerRow="@_photosPerRow"
                                                 IsImageLoaded="@_loadedImages.Contains(photo.Id)"
                                                 OnPhotoClicked="@OnPhotoClickedAsync"
                                                 OnImageLoaded="@OnImageLoadedAsync" />
@@ -53,7 +52,7 @@
 
     [Inject] private IOptions<ImageOptions> ImageOptions { get; set; } = default!;
     [Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
-	[Inject] private IStorageService _storageService { get; set; } = default!;
+    [Inject] private IStorageService _storageService { get; set; } = default!;
 
     private int _photosPerRow { get; set; }
     private List<Photo> _allPhotos = new();
@@ -80,7 +79,10 @@
             CreatePhotoRows();
 
             if (OnPhotosLoaded.HasDelegate)
+            {
                 await OnPhotosLoaded.InvokeAsync(_allPhotos);
+            }
+
         }
         catch (Exception ex)
         {
@@ -101,7 +103,9 @@
     private async Task SetPhotosPerRowAsync(int count)
     {
         if (!PhotoGridService.IsValidPhotosPerRow(count) || _photosPerRow == count)
+        {
             return;
+        }
 
         _photosPerRow = count;
         CreatePhotoRows();
