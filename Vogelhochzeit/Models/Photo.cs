@@ -10,7 +10,7 @@ public class Photo
     public string? Description { get; init; }
     public string? Alt { get; init; }
     public bool IsLoaded { get; set; } = true;
-    
+
     public string FormattedFileSize => FormatFileSize(FileSize);
 
     private static string FormatFileSize(long sizeInBytes)

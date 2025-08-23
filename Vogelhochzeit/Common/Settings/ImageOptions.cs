@@ -1,4 +1,4 @@
-﻿namespace Vogelhochzeit.Common.Settings;
+namespace Vogelhochzeit.Common.Settings;
 
 public record ImageOptions
 {

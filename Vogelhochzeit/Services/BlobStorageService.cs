@@ -19,7 +19,7 @@ public class BlobStorageService(
         try
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-            
+
             var uniqueFileName = $"{Guid.NewGuid()}{GetFileExtension(fileName)}";
             var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
@@ -41,9 +41,9 @@ public class BlobStorageService(
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
-            
+
             logger.LogInformation("File {FileName} successfully uploaded as {BlobName}", fileName, uniqueFileName);
-            
+
             return uniqueFileName;
         }
         catch (Exception ex)
@@ -58,14 +58,14 @@ public class BlobStorageService(
         try
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-            
+
             if (!await containerClient.ExistsAsync())
             {
                 return new PagedResult<Photo>();
             }
 
             var allBlobs = new List<BlobItem>();
-            
+
             await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, traits: BlobTraits.Metadata))
             {
                 allBlobs.Add(blobItem);
@@ -78,7 +78,7 @@ public class BlobStorageService(
             var pagedBlobs = allBlobs.Skip(skip).Take(pageSize).ToList();
 
             var photos = new List<Photo>();
-            
+
             foreach (var blobItem in pagedBlobs)
             {
                 var blobClient = containerClient.GetBlobClient(blobItem.Name);
@@ -86,7 +86,7 @@ public class BlobStorageService(
                 photos.Add(photo);
             }
 
-            logger.LogInformation("Retrieved page {Page} with {Count} photos from container {ContainerName}. Total: {TotalCount}", 
+            logger.LogInformation("Retrieved page {Page} with {Count} photos from container {ContainerName}. Total: {TotalCount}",
                 page, photos.Count, _containerName, totalCount);
 
             return new PagedResult<Photo>(photos, page, pageSize, totalCount);

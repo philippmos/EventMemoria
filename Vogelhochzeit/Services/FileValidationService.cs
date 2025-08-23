@@ -41,14 +41,14 @@ public class FileValidationService(IOptions<ImageOptions> imageOptions) : IFileV
     public ValidationResult ValidateFiles(IEnumerable<IBrowserFile> files)
     {
         var fileList = files.ToList();
-        
+
         if (fileList.Count > ApplicationConstants.FileUpload.MaxFileCount)
         {
             return ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount})");
         }
 
         var errors = new List<string>();
-        
+
         foreach (var file in fileList)
         {
             var result = ValidateFile(file);
@@ -58,7 +58,7 @@ public class FileValidationService(IOptions<ImageOptions> imageOptions) : IFileV
             }
         }
 
-        return errors.Any() 
+        return errors.Any()
             ? ValidationResult.Failure(string.Join(", ", errors))
             : ValidationResult.Success();
     }

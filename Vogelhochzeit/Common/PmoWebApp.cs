@@ -1,5 +1,5 @@
-﻿using MudBlazor.Services;
 using System.Runtime.CompilerServices;
+using MudBlazor.Services;
 using Vogelhochzeit.Common.Settings;
 using Vogelhochzeit.Components;
 

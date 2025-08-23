@@ -19,7 +19,7 @@ public static class ApplicationConstants
     {
         public const int MinPhotosPerRow = 2;
         public const int MaxPhotosPerRow = 12;
-        
+
         public static readonly Dictionary<int, int> PhotosPerRowHeights = new()
         {
             { 2, 400 },

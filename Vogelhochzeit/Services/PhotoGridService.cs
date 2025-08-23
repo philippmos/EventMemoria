@@ -9,13 +9,13 @@ public class PhotoGridService : IPhotoGridService
     public List<List<Photo>> CreatePhotoRows(IReadOnlyList<Photo> photos, int photosPerRow)
     {
         var rows = new List<List<Photo>>();
-        
+
         for (int i = 0; i < photos.Count; i += photosPerRow)
         {
             var rowPhotos = photos.Skip(i).Take(photosPerRow).ToList();
             rows.Add(rowPhotos);
         }
-        
+
         return rows;
     }
 
@@ -43,6 +43,6 @@ public class PhotoGridService : IPhotoGridService
     }
 
     public bool IsValidPhotosPerRow(int photosPerRow)
-        => photosPerRow >= ApplicationConstants.PhotoGrid.MinPhotosPerRow 
+        => photosPerRow >= ApplicationConstants.PhotoGrid.MinPhotosPerRow
         && photosPerRow <= ApplicationConstants.PhotoGrid.MaxPhotosPerRow;
 }
