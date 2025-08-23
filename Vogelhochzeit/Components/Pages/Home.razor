@@ -6,10 +6,7 @@
 <PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
 
 <div class="birds-container">
-    <HeaderComponent Title="Vogelhochzeit" 
-                     Names="Jasmin & Philipp" 
-                     AvatarImagePath="/title-image.jpg"
-                     WelcomeMessage="" />
+    <HeaderComponent />
 
     <PhotoUploadComponent OnPhotosUploaded="@RefreshVirtualizedGrid" />
     <VirtualizedPhotoGrid @ref="virtualizedGrid"
