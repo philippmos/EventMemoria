@@ -1,5 +1,4 @@
 .birds-container {
-    max-width: 480px;
     margin: 0 auto;
     background: linear-gradient(135deg, #E5D1D0 0%, #E5D1D0 100%);
     min-height: 100vh;
@@ -32,36 +31,6 @@
 
 .categories-container::-webkit-scrollbar {
     display: none; /* Chrome, Safari und Opera */
-}
-
-.photo-grid-item {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.photo-grid-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.photo-grid-item .photo-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.photo-grid-item:hover .photo-overlay {
-    opacity: 1;
 }
 
 .upload-button {
@@ -116,30 +85,6 @@
     background: white;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.photo-grid-item {
-    animation: fadeInUp 0.5s ease-out;
-}
-
-.photo-grid-item:nth-child(1) { animation-delay: 0.05s; }
-.photo-grid-item:nth-child(2) { animation-delay: 0.1s; }
-.photo-grid-item:nth-child(3) { animation-delay: 0.15s; }
-.photo-grid-item:nth-child(4) { animation-delay: 0.2s; }
-.photo-grid-item:nth-child(5) { animation-delay: 0.25s; }
-.photo-grid-item:nth-child(6) { animation-delay: 0.3s; }
-.photo-grid-item:nth-child(7) { animation-delay: 0.35s; }
-.photo-grid-item:nth-child(8) { animation-delay: 0.4s; }
-
 .wedding-filter-button {
     color: var(--wedding-gray);
     transition: color 0.2s ease;
@@ -147,4 +92,15 @@
 
 .wedding-filter-button:hover {
     color: var(--wedding-rose);
+}
+
+.wedding-button-selected {
+    background-color: #A86C6C !important;
+    color: white !important;
+    border-color: #A86C6C !important;
+}
+
+.wedding-button-selected:hover {
+    background-color: #94615F !important;
+    border-color: #94615F !important;
 }
