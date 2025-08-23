@@ -1,9 +1,12 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Options
+@using Vogelhochzeit.Common.Settings
 @using Vogelhochzeit.Components.Shared
 @using Vogelhochzeit.Models
+
 @rendermode InteractiveServer
 
-<PageTitle>Vogelhochzeit - Fotoportal</PageTitle>
+<PageTitle>@CustomizationOptions.Value.PageTitle</PageTitle>
 
 <div class="birds-container">
     <HeaderComponent />
@@ -14,6 +17,8 @@
 </div>
 
 @code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+
     private VirtualizedPhotoGrid? virtualizedGrid;
     private int totalPhotosCount = 0;
 
