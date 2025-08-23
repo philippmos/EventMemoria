@@ -1,0 +1,17 @@
+.photo-card-virtual:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.photo-image-container:hover {
+    transform: scale(1.02);
+}
+
+.photo-placeholder {
+    animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}

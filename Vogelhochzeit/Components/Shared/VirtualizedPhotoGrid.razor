@@ -1,78 +1,37 @@
 @using Microsoft.Extensions.Options
+@using Vogelhochzeit.Common.Constants
 @using Vogelhochzeit.Common.Settings
 @using Vogelhochzeit.Models
 @using Vogelhochzeit.Services
-@inject IStorageService StorageService
+@using Vogelhochzeit.Services.Interfaces
+@using Vogelhochzeit.Services.Interfaces
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
-    @if (isLoading)
+    @if (_isLoading)
     {
         <MudStack Spacing="3" Class="pa-4">
             <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
             <MudText Typo="Typo.body1" Align="Align.Center">Lade Fotos...</MudText>
         </MudStack>
     }
-    else if (allPhotos.Any())
+    else if (_allPhotos.Any())
     {
         <MudStack Spacing="2" Class="pa-2">
-
-            <MudPaper Class="pa-3" Elevation="1">
-                <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                    
-                    <MudStack Row Spacing="2">
-                        <MudText Typo="Typo.body2" Class="text-muted">
-                            Fotos pro Zeile:
-                        </MudText>
-                        <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
-                            <MudButton OnClick="() => SetPhotosPerRow(2)"
-                                       Variant="@(PhotosPerRow == 2 ? Variant.Filled : Variant.Outlined)">2</MudButton>
-                            <MudButton OnClick="() => SetPhotosPerRow(4)"
-                                       Variant="@(PhotosPerRow == 4 ? Variant.Filled : Variant.Outlined)">4</MudButton>
-                            <MudButton OnClick="() => SetPhotosPerRow(6)" 
-                                      Variant="@(PhotosPerRow == 6 ? Variant.Filled : Variant.Outlined)">6</MudButton>
-                            <MudButton OnClick="() => SetPhotosPerRow(8)" 
-                                      Variant="@(PhotosPerRow == 8 ? Variant.Filled : Variant.Outlined)">8</MudButton>
-                            <MudButton OnClick="() => SetPhotosPerRow(12)" 
-                                      Variant="@(PhotosPerRow == 12 ? Variant.Filled : Variant.Outlined)">12</MudButton>
-                        </MudButtonGroup>
-                    </MudStack>
-                </MudStack>
-            </MudPaper>
+            <PhotoGridControlsComponent _photosPerRow="@_photosPerRow" 
+                                        On_photosPerRowChanged="@SetPhotosPerRowAsync" />
             
-            <div style="height: 70vh; overflow-y: auto;">
-                <MudVirtualize Items="@photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="3">
+            <div style="height: @ApplicationConstants.Ui.GridContainerHeight; overflow-y: auto;">
+                <MudVirtualize Items="@_photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="@ApplicationConstants.Pagination.VirtualizationOverscanCount">
                     <div class="photo-row" style="display: flex; gap: 12px; padding: 6px; justify-content: flex-start; flex-wrap: nowrap;">
                         @foreach (var photo in row)
                         {
-                            <div class="photo-container" style="@GetPhotoContainerStyle()">
-                                <MudCard Class="photo-card-virtual" Style="height: 100%; transition: all 0.2s ease;">
-                                    <MudCardContent Class="pa-1" Style="height: 100%;">
-                                        <div class="photo-image-container" style="height: @(GetRowHeight() - 60)px; position: relative; overflow: hidden; border-radius: 8px; cursor: pointer;"
-                                             @onclick="() => OpenGallery(GetPhotoGlobalIndex(photo))">
-                                            
-                                            @if (!loadedImages.Contains(photo.Id))
-                                            {
-                                                <div class="photo-placeholder" style="width: 100%; height: 100%; background: linear-gradient(45deg, #f0f0f0, #e0e0e0); display: flex; align-items: center; justify-content: center;">
-                                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                                                </div>
-                                            }
-                                            
-                                            <MudImage 
-                                                Src="@photo.Url"
-                                                Alt="@(photo.Alt ?? "Foto")"
-                                                ObjectFit="ObjectFit.Cover"
-                                                Style="@(GetImageStyle(photo.Id))"
-                                                @onload="() => OnImageLoad(photo.Id)" />
-                                        </div>
-                                        
-                                        <MudText Typo="Typo.caption" Class="mt-1 text-truncate" Style="font-size: 0.7rem;">
-                                            @GetShortFileName(photo.FileName)
-                                        </MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </div>
+                            <PhotoCardComponent Photo="@photo"
+                                                _photosPerRow="@_photosPerRow"
+                                                IsImageLoaded="@_loadedImages.Contains(photo.Id)"
+                                                OnPhotoClicked="@OnPhotoClickedAsync"
+                                                OnImageLoaded="@OnImageLoadedAsync" />
                         }
                     </div>
                 </MudVirtualize>
@@ -87,62 +46,41 @@
     }
 </MudContainer>
 
-<style>
-    .photo-card-virtual:hover {
-        transform: scale(1.03);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    }
-    
-    .photo-image-container:hover {
-        transform: scale(1.02);
-    }
-    
-    .photo-placeholder {
-        animation: pulse 1.5s ease-in-out infinite alternate;
-    }
-    
-    @@keyframes pulse {
-        from { opacity: 0.6; }
-        to { opacity: 1; }
-    }
-</style>
+
 
 @code {
-
     [Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
 
     [Inject] private IOptions<ImageOptions> ImageOptions { get; set; } = default!;
+    [Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
+	[Inject] private IStorageService _storageService { get; set; } = default!;
 
-    private int PhotosPerRow { get; set; }
-
-    private List<Photo> allPhotos = new();
-    private List<List<Photo>> photoRows = new();
-    private HashSet<string> loadedImages = new();
-    private bool isLoading = true;
+    private int _photosPerRow { get; set; }
+    private List<Photo> _allPhotos = new();
+    private List<List<Photo>> _photoRows = new();
+    private HashSet<string> _loadedImages = new();
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-		PhotosPerRow = ImageOptions.Value.DefaultPhotosPerRow;
-
-        await LoadAllPhotos();
+        _photosPerRow = ImageOptions.Value.DefaultPhotosPerRow;
+        await LoadAllPhotosAsync();
     }
 
-    private async Task LoadAllPhotos()
+    private async Task LoadAllPhotosAsync()
     {
         try
         {
-            isLoading = true;
+            _isLoading = true;
             StateHasChanged();
 
-            var result = await StorageService.GetPhotosPagedAsync(1, 100);
-            allPhotos = result.Items;
+            var result = await _storageService.GetPhotosPagedAsync(1, ApplicationConstants.Pagination.MaxPageSize);
+            _allPhotos = result.Items;
 
             CreatePhotoRows();
 
             if (OnPhotosLoaded.HasDelegate)
-            {
-                await OnPhotosLoaded.InvokeAsync(allPhotos);
-            }
+                await OnPhotosLoaded.InvokeAsync(_allPhotos);
         }
         catch (Exception ex)
         {
@@ -150,111 +88,53 @@
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
             StateHasChanged();
         }
     }
 
     private void CreatePhotoRows()
     {
-        photoRows.Clear();
-
-        for (int i = 0; i < allPhotos.Count; i += PhotosPerRow)
-        {
-            var rowPhotos = allPhotos.Skip(i).Take(PhotosPerRow).ToList();
-            photoRows.Add(rowPhotos);
-        }
+        _photoRows = PhotoGridService.CreatePhotoRows(_allPhotos, _photosPerRow);
     }
 
-    private void SetPhotosPerRow(int count)
+    private async Task SetPhotosPerRowAsync(int count)
     {
-        if (PhotosPerRow != count)
-        {
-            PhotosPerRow = count;
-            CreatePhotoRows();
-            StateHasChanged();
-        }
-    }
-
-    private int GetRowHeight()
-    {
-        return PhotosPerRow switch
-        {
-            2 => 400,
-            4 => 300,
-            6 => 250,
-            8 => 200,
-            12 => 150,
-            _ => 250
-        };
-    }
-
-    private string GetPhotoContainerStyle()
-    {
-        var width = PhotosPerRow switch
-        {
-            2 => "calc(50% - 9px)",
-            4 => "calc(25% - 9px)",
-            6 => "calc(16.666% - 10px)",
-            8 => "calc(12.5% - 10.5px)",
-            12 => "calc(8.333% - 11px)",
-            _ => "calc(16.666% - 10px)"
-        };
-
-        return $"width: {width}; min-width: {width}; flex-shrink: 0;";
-    }
-
-    private string GetImageStyle(string photoId)
-    {
-        var baseStyle = "width: 100%; height: 100%; object-fit: cover; transition: all 0.3s ease;";
-
-        if (!loadedImages.Contains(photoId))
-        {
-            baseStyle += " opacity: 0;";
-        }
-        else
-        {
-            baseStyle += " opacity: 1;";
-        }
-
-        return baseStyle;
-    }
-
-    private void OnImageLoad(string photoId)
-    {
-        if (!loadedImages.Contains(photoId))
-        {
-            loadedImages.Add(photoId);
-            StateHasChanged();
-        }
-    }
-
-    private int GetPhotoGlobalIndex(Photo photo)
-    {
-        return allPhotos.FindIndex(p => p.Id == photo.Id);
-    }
-
-    private string GetShortFileName(string fileName)
-    {
-        if (string.IsNullOrEmpty(fileName)) return "";
-
-        var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-        return nameWithoutExtension.Length > 15 
-            ? nameWithoutExtension.Substring(0, 15) + "..." 
-            : nameWithoutExtension;
-    }
-
-    private async Task OpenGallery(int initialIndex)
-    {
-        if (!allPhotos.Any() || initialIndex < 0)
-        {
+        if (!PhotoGridService.IsValidPhotosPerRow(count) || _photosPerRow == count)
             return;
-        }
 
-        var pageSize = 100;
+        _photosPerRow = count;
+        CreatePhotoRows();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private int GetRowHeight() => PhotoGridService.GetRowHeight(_photosPerRow);
+
+    private async Task OnImageLoadedAsync(string photoId)
+    {
+        if (!_loadedImages.Contains(photoId))
+        {
+            _loadedImages.Add(photoId);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnPhotoClickedAsync(Photo photo)
+    {
+        var photoIndex = _allPhotos.FindIndex(p => p.Id == photo.Id);
+        if (photoIndex >= 0)
+            await OpenGalleryAsync(photoIndex);
+    }
+
+    private async Task OpenGalleryAsync(int initialIndex)
+    {
+        if (!_allPhotos.Any() || initialIndex < 0)
+            return;
+
+        var pageSize = ApplicationConstants.Pagination.MaxPageSize;
         var currentPage = (initialIndex / pageSize) + 1;
         var startIndex = (currentPage - 1) * pageSize;
-        var galleryPhotos = allPhotos.Skip(startIndex).Take(pageSize).ToList();
+        var galleryPhotos = _allPhotos.Skip(startIndex).Take(pageSize).ToList();
         var adjustedIndex = Math.Max(0, initialIndex - startIndex);
 
         var parameters = new DialogParameters<ImageGalleryDialog>
@@ -262,7 +142,7 @@
             { x => x.Photos, galleryPhotos },
             { x => x.InitialIndex, adjustedIndex },
             { x => x.CurrentPage, currentPage },
-            { x => x.TotalPages, (int)Math.Ceiling((double)allPhotos.Count / pageSize) }
+            { x => x.TotalPages, (int)Math.Ceiling((double)_allPhotos.Count / pageSize) }
         };
 
         var options = new DialogOptions
@@ -279,7 +159,7 @@
 
     public async Task RefreshPhotos()
     {
-        loadedImages.Clear();
-        await LoadAllPhotos();
+        _loadedImages.Clear();
+        await LoadAllPhotosAsync();
     }
 }

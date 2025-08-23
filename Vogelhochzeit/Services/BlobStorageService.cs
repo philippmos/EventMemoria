@@ -3,6 +3,7 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
 using Vogelhochzeit.Common.Settings;
 using Vogelhochzeit.Models;
+using Vogelhochzeit.Services.Interfaces;
 
 namespace Vogelhochzeit.Services;
 
@@ -33,7 +34,7 @@ public class BlobStorageService(
                 HttpHeaders = blobHttpHeaders,
                 Tags = new Dictionary<string, string>
                 {
-                    { "Author", "Philipp Moser" },
+                    { "Author", "Anonymous" },
                     { "FileName", fileName },
                     { "UploadedAt", DateTime.UtcNow.ToString("o") }
                 },
@@ -81,15 +82,7 @@ public class BlobStorageService(
             foreach (var blobItem in pagedBlobs)
             {
                 var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                var photo = new Photo
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    FileName = blobItem.Name,
-                    Url = blobClient.Uri.ToString(),
-                    UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
-                    FileSize = blobItem.Properties.ContentLength ?? 0
-                };
-
+                var photo = CreatePhotoFromBlobItem(blobItem, blobClient);
                 photos.Add(photo);
             }
 
@@ -106,6 +99,18 @@ public class BlobStorageService(
     }
 
 
-    private string GetFileExtension(string fileName)
+    private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient)
+    {
+        return new Photo
+        {
+            Id = Guid.NewGuid().ToString(),
+            FileName = blobItem.Name,
+            Url = blobClient.Uri.ToString(),
+            UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
+            FileSize = blobItem.Properties.ContentLength ?? 0
+        };
+    }
+
+    private static string GetFileExtension(string fileName)
         => Path.GetExtension(fileName).ToLowerInvariant();
 }

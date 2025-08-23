@@ -1,18 +1,17 @@
 @using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.Extensions.Options
-@using Vogelhochzeit.Common.Settings
-@using Vogelhochzeit.Models
 @using Vogelhochzeit.Services
+@using Vogelhochzeit.Services.Interfaces
+@using Vogelhochzeit.Services.Interfaces
 
 <MudItem xs="12" sm="12" md="12" lg="12">
     <MudPaper Class="d-flex flex-column justify-center align-center pa-4 mt-3 mb-1 ml-4 mr-3" 
               Style="background: linear-gradient(135deg, #A86C6C 0%, #A86C6C 100%); position: relative; border-radius: 8px;">
         
-        @if (isUploading)
+        @if (_isUploading)
         {
             <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
             <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-                @uploadProgress
+                @_uploadProgress
             </MudText>
         }
         else
@@ -20,8 +19,8 @@
             <InputFile
                        multiple 
                        accept="image/*" 
-                       OnChange="@HandleMultiFileUpload"
-                       disabled="@isUploading"
+                       OnChange="@HandleMultiFileUploadAsync"
+                       disabled="@_isUploading"
                        style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
 
             <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
@@ -38,105 +37,98 @@
 @code {
     [Parameter] public EventCallback OnPhotosUploaded { get; set; }
 
-    [Inject] private IStorageService StorageService { get; set; } = default!;
+    [Inject] private IStorageService _storageService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private IOptions<ImageOptions> _imageOptions { get; set; } = default!;
+    [Inject] private IFileValidationService _fileValidationService { get; set; } = default!;
 
-    private bool isUploading = false;
-    private string uploadProgress = "";
+    private bool _isUploading { get; set; } = false;
+    private string _uploadProgress = string.Empty;
 
-    private const long MaxFileSize = 50 * 1024 * 1024; // 50MB pro Datei
-    private readonly string[] AllowedExtensions = {  };
-
-    private async Task HandleMultiFileUpload(InputFileChangeEventArgs eventArgs)
+    private async Task HandleMultiFileUploadAsync(InputFileChangeEventArgs eventArgs)
     {
         if (eventArgs.FileCount == 0)
         {
             return;
         }
 
-        isUploading = true;
-        uploadProgress = "Vorbereitung...";
-
-        var totalFiles = eventArgs.FileCount;
-        var processedFiles = 0;
-        var uploadedFiles = 0;
-        var errors = new List<string>();
-
-        foreach (var browserFile in eventArgs.GetMultipleFiles(maximumFileCount: 50))
+        var files = eventArgs.GetMultipleFiles(maximumFileCount: 50).ToList();
+        var validationResult = _fileValidationService.ValidateFiles(files);
+        
+        if (!validationResult.IsValid)
         {
-            processedFiles++;
-            uploadProgress = $"Verarbeite Datei {processedFiles} von {totalFiles}...";
-
-            if (browserFile == null)
-            {
-                continue;
-            }
-
-            if (!IsFileValid(browserFile))
-            {
-                errors.Add($"'{browserFile.Name}': Ungültiges Format oder zu groß");
-                continue;
-            }
-
-            try
-            {
-                using var fileStream = browserFile.OpenReadStream(MaxFileSize);
-                var fileName = await StorageService.UploadFileAsync(
-                    fileStream, 
-                    browserFile.Name, 
-                    browserFile.ContentType);
-
-                uploadedFiles++;
-
-                Snackbar.Add($"{browserFile.Name} erfolgreich hochgeladen", Severity.Success);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"'{browserFile.Name}': {ex.Message}");
-            }
+            Snackbar.Add(validationResult.ErrorMessage, Severity.Error);
+            return;
         }
 
-        if (errors.Any())
+        await ProcessFileUploadsAsync(files);
+    }
+
+    private async Task ProcessFileUploadsAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        _isUploading = true;
+        _uploadProgress = "Vorbereitung...";
+
+        var uploadResults = new List<UploadResult>();
+
+        for (var i = 0; i < files.Count; i++)
         {
-            var errorMessage = errors.Count == 1 
-                ? $"Fehler: {errors.First()}"
-                : $"{errors.Count} Fehler aufgetreten. Erste: {errors.First()}";
-            Snackbar.Add(errorMessage, Severity.Warning);
+            var file = files[i];
+            _uploadProgress = $"Verarbeite Datei {i + 1} von {files.Count}...";
+
+            var result = await UploadSingleFileAsync(file);
+            uploadResults.Add(result);
         }
 
-        if (uploadedFiles == 0)
+        await HandleUploadResults(uploadResults);
+        
+        _isUploading = false;
+        _uploadProgress = string.Empty;
+    }
+
+    private async Task<UploadResult> UploadSingleFileAsync(IBrowserFile file)
+    {
+        try
         {
-            Snackbar.Add("Keine Fotos hochgeladen", Severity.Warning);
+            using var fileStream = file.OpenReadStream(50 * 1024 * 1024); // 50MB
+            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType);
+            
+            return UploadResult.Success(file.Name);
         }
-
-        isUploading = false;
-        uploadProgress = "";
-
-        if (uploadedFiles > 0 && OnPhotosUploaded.HasDelegate)
+        catch (Exception ex)
         {
-            await OnPhotosUploaded.InvokeAsync();
+            return UploadResult.Failure(file.Name, ex.Message);
         }
     }
 
-    private bool IsFileValid(IBrowserFile file)
+    private async Task HandleUploadResults(IReadOnlyList<UploadResult> results)
     {
-        if (file.Size > MaxFileSize)
+        var successCount = results.Count(r => r.IsSuccess);
+        var failures = results.Where(r => !r.IsSuccess).ToList();
+
+        if (successCount > 0)
         {
-            return false;
+            Snackbar.Add($"{successCount} Foto(s) erfolgreich hochgeladen", Severity.Success);
+            
+            if (OnPhotosUploaded.HasDelegate)
+            {
+                await OnPhotosUploaded.InvokeAsync();
+            }
         }
 
-        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
-        if (!_imageOptions.Value.AllowedFileTypes.Contains(extension))
+        foreach (var failure in failures.Take(3))
         {
-            return false;
+            Snackbar.Add($"Fehler bei '{failure.FileName}': {failure.ErrorMessage}", Severity.Error);
         }
-        
-        if (!file.ContentType.StartsWith("image/"))
+
+        if (failures.Count > 3)
         {
-            return false;
+            Snackbar.Add($"Und {failures.Count - 3} weitere Fehler...", Severity.Warning);
         }
-        
-        return true;
+    }
+
+    private record UploadResult(bool IsSuccess, string FileName, string ErrorMessage = "")
+    {
+        public static UploadResult Success(string fileName) => new(true, fileName);
+        public static UploadResult Failure(string fileName, string errorMessage) => new(false, fileName, errorMessage);
     }
 }

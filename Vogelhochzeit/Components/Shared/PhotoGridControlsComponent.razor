@@ -1,0 +1,28 @@
+@using Vogelhochzeit.Common.Constants
+
+<MudPaper Class="pa-3" Elevation="1">
+    <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Row Spacing="2">
+            <MudText Typo="Typo.body2" Class="text-muted">
+                Fotos pro Zeile:
+            </MudText>
+            <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+                @foreach (var option in GetPhotosPerRowOptions())
+                {
+                    <MudButton OnClick="@(() => OnPhotosPerRowChanged.InvokeAsync(option))"
+                               Variant="@(PhotosPerRow == option ? Variant.Filled : Variant.Outlined)">
+                        @option
+                    </MudButton>
+                }
+            </MudButtonGroup>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter] public int PhotosPerRow { get; set; }
+    [Parameter] public EventCallback<int> OnPhotosPerRowChanged { get; set; }
+
+    private static int[] GetPhotosPerRowOptions() 
+        => ApplicationConstants.PhotoGrid.PhotosPerRowHeights.Keys.OrderBy(k => k).ToArray();
+}

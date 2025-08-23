@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Vogelhochzeit.Services;
+using Vogelhochzeit.Services.Interfaces;
 
 namespace Vogelhochzeit;
 
@@ -9,11 +10,13 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("AzureStorage");
 
-        if (!string.IsNullOrEmpty(connectionString))
-        {
-            services.AddSingleton(x => new BlobServiceClient(connectionString));
-            services.AddScoped<IStorageService, BlobStorageService>();
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
+
+        services.AddSingleton(x => new BlobServiceClient(connectionString));
+        services.AddScoped<IStorageService, BlobStorageService>();
+
+        services.AddScoped<IPhotoGridService, PhotoGridService>();
+        services.AddScoped<IFileValidationService, FileValidationService>();
 
         return services;
     }

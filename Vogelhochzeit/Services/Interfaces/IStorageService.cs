@@ -1,6 +1,6 @@
 ﻿using Vogelhochzeit.Models;
 
-namespace Vogelhochzeit.Services;
+namespace Vogelhochzeit.Services.Interfaces;
 
 public interface IStorageService
 {

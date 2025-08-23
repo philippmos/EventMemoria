@@ -1,7 +1,8 @@
-@using Vogelhochzeit.Models
-@using Vogelhochzeit.Services
 @using MudBlazor
 @using MudBlazor.Services
+@using Vogelhochzeit.Models
+@using Vogelhochzeit.Services
+@using Vogelhochzeit.Services.Interfaces
 @inject IJSRuntime JSRuntime
 @inject IStorageService StorageService
 @inject ISnackbar Snackbar
@@ -64,7 +65,6 @@
                                   Style="position: absolute; right: -50px; z-index: 10; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
                 </div>
                 
-                <!-- Photo Info -->
                 <MudPaper Class="pa-3 mt-3" Elevation="1" Style="width: 100%; max-width: 800px;">
                                             <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.body1">
@@ -114,7 +114,17 @@
     private int CurrentIndex { get; set; }
     private bool isLoadingPage = false;
     
-    private Photo CurrentPhoto => Photos.Count > 0 && CurrentIndex < Photos.Count ? Photos[CurrentIndex] : new Photo { Id = Guid.NewGuid().ToString(), FileName = "", Url = "" };
+    private Photo CurrentPhoto 
+        => Photos.Count > 0 && CurrentIndex < Photos.Count 
+            ? Photos[CurrentIndex] 
+            : new Photo 
+            { 
+                Id = Guid.NewGuid().ToString(), 
+                FileName = "", 
+                Url = "",
+                UploadDate = DateTime.MinValue,
+                FileSize = 0
+            };
 
     protected override void OnInitialized()
     {
