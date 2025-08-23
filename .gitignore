@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 */wwwroot/title-image.jpg
+.env

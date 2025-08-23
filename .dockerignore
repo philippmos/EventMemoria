@@ -1,0 +1,71 @@
+# .dockerignore - Dateien die nicht in den Docker Build Context gehören
+
+# Binärdateien und Build-Outputs
+**/bin
+**/obj
+**/out
+**/.vs
+**/.vscode
+
+# NuGet Packages
+**/packages
+
+# Visual Studio temporäre Dateien
+**/*.user
+**/*.suo
+**/*.cache
+**/project.lock.json
+**/project.fragment.lock.json
+**/artifacts
+
+# .NET Core
+**/.dotnet
+**/project.assets.json
+**/project.nuget.cache
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker files
+**/Dockerfile*
+**/docker-compose*
+.dockerignore
+
+# Secrets und lokale Konfiguration
+**/secrets.json
+**/*.pfx
+**/*.p12
+
+# Logs
+**/logs
+**/*.log
+
+# Temporary files
+**/tmp
+**/temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+**/.idea
+**/*.swp
+**/*.swo
+
+# Node.js (falls verwendet)
+**/node_modules
+**/npm-debug.log*
+
+# Test results
+**/TestResults
+**/*.trx
+**/*.coverage
+**/*.coveragexml

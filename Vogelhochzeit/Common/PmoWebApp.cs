@@ -12,6 +12,8 @@ public static class PmoWebApp
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddMudServices();
+        
+        builder.Services.AddHealthChecks();
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
@@ -39,6 +41,8 @@ public static class PmoWebApp
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
+
+        app.MapHealthChecks("/health");
 
         return app;
     }
