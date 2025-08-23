@@ -19,7 +19,7 @@ public class BlobStorageService(
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
             
-            var uniqueFileName = Guid.NewGuid().ToString();
+            var uniqueFileName = $"{Guid.NewGuid()}{GetFileExtension(fileName)}";
             var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
             var blobHttpHeaders = new BlobHttpHeaders();
@@ -67,10 +67,7 @@ public class BlobStorageService(
             
             await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, traits: BlobTraits.Metadata))
             {
-                if (IsImageFile(blobItem.Name))
-                {
-                    allBlobs.Add(blobItem);
-                }
+                allBlobs.Add(blobItem);
             }
 
             allBlobs = allBlobs.OrderByDescending(b => b.Properties.LastModified).ToList();
@@ -92,6 +89,7 @@ public class BlobStorageService(
                     UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
                     FileSize = blobItem.Properties.ContentLength ?? 0
                 };
+
                 photos.Add(photo);
             }
 
@@ -107,9 +105,7 @@ public class BlobStorageService(
         }
     }
 
-    private bool IsImageFile(string fileName)
-    {
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return imageOptions.Value.AllowedFileTypes.Contains(extension);
-    }
+
+    private string GetFileExtension(string fileName)
+        => Path.GetExtension(fileName).ToLowerInvariant();
 }

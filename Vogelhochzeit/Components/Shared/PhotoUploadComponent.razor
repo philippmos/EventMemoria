@@ -88,16 +88,13 @@
                     browserFile.ContentType);
 
                 uploadedFiles++;
+
+                Snackbar.Add($"{browserFile.Name} erfolgreich hochgeladen", Severity.Success);
             }
             catch (Exception ex)
             {
                 errors.Add($"'{browserFile.Name}': {ex.Message}");
             }
-        }
-
-        if (uploadedFiles > 0)
-        {
-            Snackbar.Add($"{uploadedFiles} Foto(s) erfolgreich zu Blob Storage hochgeladen", Severity.Success);
         }
 
         if (errors.Any())
