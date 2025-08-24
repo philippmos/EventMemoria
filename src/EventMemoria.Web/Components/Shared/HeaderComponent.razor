@@ -1,0 +1,27 @@
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.AspNetCore.Components
+@using Microsoft.Extensions.Options
+
+<MudPaper Class="pa-6" Elevation="0" Style="background: #A86C6C/*linear-gradient(180deg, #A86C6C 0%, #E5D1D0 100%)*/; border-radius: 0;">
+    <div class="text-center">
+        <MudText Typo="Typo.h4" Class="mb-4" Style="color: white; font-weight: 300; letter-spacing: 2px;">
+			@CustomizationOptions.Value.Title
+        </MudText>
+        
+        <MudAvatar Size="Size.Large" Class="mb-3" Style="width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.2);">
+            <MudImage Src="@CustomizationOptions.Value.AvatarPath" Alt="@CustomizationOptions.Value.Names" />
+        </MudAvatar>
+        
+        <MudText Typo="Typo.h5" Class="mb-2" Style="color: white; font-weight: 500;">
+			@CustomizationOptions.Value.Names
+        </MudText>
+        
+        <MudText Typo="Typo.body2" Class="mb-4" Style="color: rgba(255,255,255,0.8); max-width: 280px; margin: 0 auto; font-size: 0.9rem;">
+			@CustomizationOptions.Value.WelcomeMessage
+        </MudText>
+    </div>
+</MudPaper>
+
+@code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+}
