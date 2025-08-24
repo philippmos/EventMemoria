@@ -1,4 +1,4 @@
-# Vogelhochzeit - Fotoportal
+# EventMemoria - Fotoportal
 
 Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeitsfotos. Die Anwendung ermöglicht es Hochzeitsgästen, Fotos hochzuladen und gemeinsam eine Fotogalerie zu erstellen.
 
@@ -31,8 +31,8 @@ Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeits
 1. **Repository klonen**
 
    ```bash
-   git clone https://github.com/philippmos/Vogelhochzeit.git
-   cd Vogelhochzeit
+   git clone https://github.com/philippmos/EventMemoria.git
+   cd EventMemoria
    ```
 
 2. **Abhängigkeiten installieren**

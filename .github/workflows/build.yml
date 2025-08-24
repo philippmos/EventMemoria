@@ -20,8 +20,7 @@ jobs:
         dotnet-version: '9.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore Vogelhochzeit/Vogelhochzeit.csproj
-    
+      run: dotnet restore src/EventMemoria.Web/EventMemoria.Web.csproj
+
     - name: Build application
-      run: dotnet build Vogelhochzeit/Vogelhochzeit.csproj --configuration Release --no-restore
-    
+      run: dotnet build src/EventMemoria.Web/EventMemoria.Web.csproj --configuration Release --no-restore

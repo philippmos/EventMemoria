@@ -1,0 +1,58 @@
+@page "/"
+@using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Models
+@using Microsoft.Extensions.Options
+@using EventMemoria.Web.Components.NameModal
+@using EventMemoria.Web.Components.Photo
+@using EventMemoria.Web.Components.Shared
+
+@rendermode InteractiveServer
+
+<PageTitle>@CustomizationOptions.Value.PageTitle</PageTitle>
+
+<NameModal OnNameSaved="@OnNameSaved" />
+
+<div class="birds-container">
+    <HeaderComponent />
+
+    <PhotoUploadComponent @ref="photoUploadComponent" 
+                          OnPhotosUploaded="@RefreshVirtualizedGrid" />
+    <VirtualizedPhotoGrid @ref="virtualizedGrid"
+                          OnPhotosLoaded="@OnPhotosLoaded" />
+</div>
+
+@code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+
+    private VirtualizedPhotoGrid? virtualizedGrid;
+    private PhotoUploadComponent? photoUploadComponent;
+    private int totalPhotosCount = 0;
+
+    private async Task RefreshPhotos()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshVirtualizedGrid()
+    {
+        if (virtualizedGrid != null)
+        {
+            await virtualizedGrid.RefreshPhotos();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPhotosLoaded(List<Photo> photos)
+    {
+        totalPhotosCount = photos.Count;
+        StateHasChanged();
+    }
+
+    private async Task OnNameSaved()
+    {
+        if (photoUploadComponent != null)
+        {
+            await photoUploadComponent.RefreshUserName();
+        }
+    }
+}

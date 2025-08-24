@@ -1,0 +1,250 @@
+@using EventMemoria.Web.Models
+@using EventMemoria.Web.Services.Interfaces
+@using MudBlazor
+@using MudBlazor.Services
+@using EventMemoria.Web.Services
+@inject IJSRuntime JSRuntime
+@inject IStorageService StorageService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center">
+            <MudText Typo="Typo.h6">
+                Foto @(CurrentIndex + 1) von @Photos.Count
+                @if (TotalPages > 1)
+                {
+                    <span class="text-muted ml-2">(Seite @CurrentPage von @TotalPages)</span>
+                }
+            </MudText>
+            <MudSpacer />
+            @if (TotalPages > 1)
+            {
+                <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+                    <MudButton OnClick="LoadPreviousPage"
+                              Disabled="@(CurrentPage <= 1 || isLoadingPage)"
+                              StartIcon="Icons.Material.Filled.NavigateBefore">
+                        Vorherige Seite
+                    </MudButton>
+                    <MudButton OnClick="LoadNextPage"
+                              Disabled="@(CurrentPage >= TotalPages || isLoadingPage)"
+                              EndIcon="Icons.Material.Filled.NavigateNext">
+                        Nächste Seite
+                    </MudButton>
+                </MudButtonGroup>
+            }
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="d-flex flex-column align-center" style="min-height: 60vh;">
+            @if (isLoadingPage)
+            {
+                <div class="d-flex justify-center align-center" style="height: 400px;">
+                    <MudProgressCircular Size="Size.Large" Indeterminate="true" />
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-center justify-center" style="position: relative; width: 100%; max-width: 800px;">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                  Color="Color.Primary"
+                                  Size="Size.Large"
+                                  OnClick="PreviousPhoto"
+                                  Disabled="@(!CanNavigateLeft())"
+                                  Style="position: absolute; left: -50px; z-index: 10; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+                    
+                    <MudImage Src="@CurrentPhoto.Url"
+                             Alt="@CurrentPhoto.Alt"
+                             Style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);" />
+                    
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                  Color="Color.Primary"
+                                  Size="Size.Large"
+                                  OnClick="NextPhoto"
+                                  Disabled="@(!CanNavigateRight())"
+                                  Style="position: absolute; right: -50px; z-index: 10; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+                </div>
+                
+                <MudPaper Class="pa-3 mt-3" Elevation="1" Style="width: 100%; max-width: 800px;">
+                                            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body1">
+                            <strong>@CurrentPhoto.FileName</strong>
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            @CurrentPhoto.FormattedFileSize
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            @CurrentPhoto.UploadDate.ToString("dd.MM.yyyy HH:mm")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            <strong>Author:</strong> @CurrentPhoto.Author
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+                
+                @if (Photos.Count > 1)
+                {
+                    <div class="d-flex justify-center mt-4" style="gap: 8px; flex-wrap: wrap; max-width: 100%; overflow-x: auto;">
+                        @for (int i = 0; i < Photos.Count; i++)
+                        {
+                            var index = i;
+                            <MudPaper Class="@GetThumbnailClass(index)"
+                                     Style="cursor: pointer; transition: all 0.2s ease;"
+                                     @onclick="() => SetCurrentPhoto(index)">
+                                <MudImage Src="@Photos[index].Url"
+                                         Alt="Thumbnail"
+                                         Width="60"
+                                         Height="60"
+                                         ObjectFit="ObjectFit.Cover"
+                                         Style="border-radius: 4px;" />
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+    
+    [Parameter] public List<Photo> Photos { get; set; } = [];
+    [Parameter] public int InitialIndex { get; set; } = 0;
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalPages { get; set; } = 1;
+    
+    private int CurrentIndex { get; set; }
+    private bool isLoadingPage = false;
+    
+    private Photo CurrentPhoto 
+        => Photos.Count > 0 && CurrentIndex < Photos.Count 
+            ? Photos[CurrentIndex] 
+            : new Photo 
+            { 
+                Id = Guid.NewGuid().ToString(), 
+                FileName = "", 
+                Url = "",
+                UploadDate = DateTime.MinValue,
+                FileSize = 0
+            };
+
+    protected override void OnInitialized()
+    {
+        CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
+    }
+
+    private void NextPhoto()
+    {
+        if (CurrentIndex < Photos.Count - 1)
+        {
+            CurrentIndex++;
+        }
+        else if (CurrentPage < TotalPages)
+        {
+            _ = Task.Run(async () =>
+            {
+                await LoadNextPage();
+                CurrentIndex = 0;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    private void PreviousPhoto()
+    {
+        if (CurrentIndex > 0)
+        {
+            CurrentIndex--;
+        }
+        else if (CurrentPage > 1)
+        {
+            _ = Task.Run(async () =>
+            {
+                await LoadPreviousPage();
+                CurrentIndex = Math.Max(0, Photos.Count - 1);
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    private void SetCurrentPhoto(int index)
+    {
+        if (index >= 0 && index < Photos.Count)
+        {
+            CurrentIndex = index;
+        }
+    }
+    
+    private bool CanNavigateLeft()
+    {
+        return CurrentIndex > 0 || CurrentPage > 1;
+    }
+
+    private bool CanNavigateRight()
+    {
+        return CurrentIndex < Photos.Count - 1 || CurrentPage < TotalPages;
+    }
+
+    private async Task LoadPreviousPage()
+    {
+        if (CurrentPage <= 1 || isLoadingPage) return;
+
+        try
+        {
+            isLoadingPage = true;
+            StateHasChanged();
+            
+            CurrentPage--;
+            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, 24);
+            Photos = pagedResult.Items;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler beim Laden der vorherigen Seite: {ex.Message}", Severity.Error);
+            CurrentPage++; // Rollback
+        }
+        finally
+        {
+            isLoadingPage = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadNextPage()
+    {
+        if (CurrentPage >= TotalPages || isLoadingPage) return;
+
+        try
+        {
+            isLoadingPage = true;
+            StateHasChanged();
+            
+            CurrentPage++;
+            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, 24);
+            Photos = pagedResult.Items;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler beim Laden der nächsten Seite: {ex.Message}", Severity.Error);
+            CurrentPage--; // Rollback
+        }
+        finally
+        {
+            isLoadingPage = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetThumbnailClass(int index)
+    {
+        return index == CurrentIndex 
+            ? "pa-1 mud-elevation-4 mud-primary" 
+            : "pa-1 mud-elevation-1";
+    }
+
+    private void Close()
+    {
+        MudDialog?.Close();
+    }
+}
