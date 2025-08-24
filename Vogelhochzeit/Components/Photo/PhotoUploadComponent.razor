@@ -39,6 +39,7 @@
     [Inject] private IStorageService _storageService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IFileValidationService _fileValidationService { get; set; } = default!;
+    [Inject] private IUserPreferencesService _userPreferencesService { get; set; } = default!;
 
     private bool _isUploading { get; set; } = false;
     private string _uploadProgress = string.Empty;
@@ -52,7 +53,7 @@
 
         var files = eventArgs.GetMultipleFiles(maximumFileCount: 50).ToList();
         var validationResult = _fileValidationService.ValidateFiles(files);
-        
+
         if (!validationResult.IsValid)
         {
             Snackbar.Add(validationResult.ErrorMessage, Severity.Error);
@@ -79,7 +80,7 @@
         }
 
         await HandleUploadResults(uploadResults);
-        
+
         _isUploading = false;
         _uploadProgress = string.Empty;
     }
@@ -88,8 +89,13 @@
     {
         try
         {
+            // TODO: Check issue when fetching username
+            var author = "Default";
+            
+            author = await _userPreferencesService.GetUserNameAsync();
+
             using var fileStream = file.OpenReadStream(50 * 1024 * 1024); // 50MB
-            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType);
+            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType, author);
             
             return UploadResult.Success(file.Name);
         }

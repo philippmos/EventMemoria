@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Blazored.LocalStorage;
 using MudBlazor.Services;
 using Vogelhochzeit.Common.Settings;
 using Vogelhochzeit.Components;
@@ -20,6 +21,8 @@ public static class PmoWebApp
 
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddConfigurations(builder.Configuration);
+
+        builder.Services.AddBlazoredLocalStorage();
 
         return builder;
     }

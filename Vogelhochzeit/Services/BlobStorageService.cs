@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ public class BlobStorageService(
 {
     private readonly string _containerName = photoOptions.Value.ContainerName;
 
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string? contentType = null)
+    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string? contentType = null, string? author = null)
     {
         try
         {
@@ -34,15 +35,15 @@ public class BlobStorageService(
                 HttpHeaders = blobHttpHeaders,
                 Tags = new Dictionary<string, string>
                 {
-                    { "Author", "Anonymous" },
-                    { "FileName", fileName },
+                    { "Author", SanitizeTagValue(author ?? "Anonymous") },
+                    { "FileName", SanitizeTagValue(fileName) },
                     { "UploadedAt", DateTime.UtcNow.ToString("o") }
                 },
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
 
-            logger.LogInformation("File {FileName} successfully uploaded as {BlobName}", fileName, uniqueFileName);
+            logger.LogInformation("File {FileName} successfully uploaded as {BlobName} by {Author}", fileName, uniqueFileName, author ?? "Anonymous");
 
             return uniqueFileName;
         }
@@ -113,4 +114,31 @@ public class BlobStorageService(
 
     private static string GetFileExtension(string fileName)
         => Path.GetExtension(fileName).ToLowerInvariant();
+
+
+    private static string SanitizeTagValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "Unknown";
+        }
+
+        var sanitized = Regex.Replace(value, @"[^a-zA-Z0-9\s\+\-\.\/:=_]", "_");
+
+        sanitized = sanitized.Trim();
+
+        if (string.IsNullOrEmpty(sanitized))
+        {
+            sanitized = "Unknown";
+        }
+
+        if (sanitized.Length > 256)
+        {
+            sanitized = sanitized[..256];
+        }
+
+        sanitized = sanitized.TrimEnd();
+
+        return sanitized;
+    }
 }

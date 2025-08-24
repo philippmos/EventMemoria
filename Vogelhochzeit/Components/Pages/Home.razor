@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.Extensions.Options
 @using Vogelhochzeit.Common.Settings
+@using Vogelhochzeit.Components.NameModal
 @using Vogelhochzeit.Components.Photo
 @using Vogelhochzeit.Components.Shared
 @using Vogelhochzeit.Models
@@ -8,6 +9,8 @@
 @rendermode InteractiveServer
 
 <PageTitle>@CustomizationOptions.Value.PageTitle</PageTitle>
+
+<NameModal />
 
 <div class="birds-container">
     <HeaderComponent />
