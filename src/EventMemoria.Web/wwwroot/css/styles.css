@@ -1,15 +1,38 @@
 :root {
-    --wedding-rose: #A86C6C;
-    --wedding-light-rose: #E5D1D0;
-    --wedding-medium-rose: #E5D1D0;
-    --wedding-dark: #2C2C3E;
-    --wedding-gray: #666666;
-    --wedding-light-gray: #E8E8E8;
-    --wedding-background: linear-gradient(135deg, #E5D1D0 0%, #E5D1D0 100%);
+    --wedding-rose: rgb(168, 108, 108);
+    --wedding-light-rose: rgb(229, 209, 208);
+    --wedding-dark: rgb(44, 44, 62);
+    --wedding-gray: rgb(102, 102, 102);
+    --wedding-light-gray: rgb(232, 232, 232);
+    --wedding-background: linear-gradient(135deg, rgb(229, 209, 208) 0%, rgb(229, 209, 208) 100%);
+    
+    --color-white: rgb(255, 255, 255);
+    --color-black: rgb(0, 0, 0);    
+    
+    --color-placeholder-light: rgb(240, 240, 240);
+    --color-placeholder-dark: rgb(224, 224, 224);
+    --color-dark-secondary: rgb(64, 64, 84);
+    --color-dark-tertiary: rgb(90, 90, 110);
+    --color-purple: rgb(93, 78, 117);
+    --color-rose-hover: rgb(148, 97, 95);
+    
+    --white-20: rgba(255, 255, 255, 0.2);
+    --white-80: rgba(255, 255, 255, 0.8);
+    --white-90: rgba(255, 255, 255, 0.9);
+
+    --black-15: rgba(0, 0, 0, 0.15);
+    --black-30: rgba(0, 0, 0, 0.3);
+    --black-40: rgba(0, 0, 0, 0.4);
+    
+    --shadow-light: rgba(0, 0, 0, 0.08);
+    --shadow-medium: rgba(0, 0, 0, 0.1);
+    --shadow-dark: rgba(0, 0, 0, 0.2);
+    --shadow-darker: rgba(0, 0, 0, 0.3);
+    --shadow-rose: rgba(168, 108, 108, 0.3);
 }
 
 /* ==========================================================================
-   HEADER COMPONENT (BEM)
+   HEADER COMPONENT
    ========================================================================== */
 
 .header {
@@ -19,7 +42,7 @@
 }
 
 .header__title {
-    color: white;
+    color: var(--color-white);
     font-weight: 300;
     letter-spacing: 2px;
 }
@@ -27,17 +50,17 @@
 .header__avatar {
     width: 80px;
     height: 80px;
-    border: 2px solid rgba(255,255,255,0.2);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--white-20);
+    box-shadow: 0 4px 15px var(--shadow-medium);
 }
 
 .header__name {
-    color: white;
+    color: var(--color-white);
     font-weight: 500;
 }
 
 .header__welcome-message {
-    color: rgba(255,255,255,0.8);
+    color: var(--white-80);
     max-width: 280px;
     margin: 0 auto;
     font-size: 0.9rem;
@@ -56,7 +79,7 @@
 }
 
 /* ==========================================================================
-   LAYOUT COMPONENT (BEM)
+   LAYOUT COMPONENT
    ========================================================================== */
 
 .main-layout {
@@ -65,7 +88,7 @@
 }
 
 /* ==========================================================================
-   PHOTO UPLOAD COMPONENT (BEM)
+   PHOTO UPLOAD COMPONENT
    ========================================================================== */
 
 .photo-upload {
@@ -76,18 +99,18 @@
 }
 
 .photo-upload__icon {
-    color: #ffffff;
+    color: var(--color-white);
     font-size: 2rem;
 }
 
 .photo-upload__text {
-    color: white;
+    color: var(--color-white);
     text-align: center;
     font-weight: 500;
 }
 
 .photo-upload__description {
-    color: rgba(255,255,255,0.8);
+    color: var(--white-80);
     text-align: center;
 }
 
@@ -101,7 +124,7 @@
 }
 
 /* ==========================================================================
-   PHOTO GALLERY DIALOG (BEM)
+   PHOTO GALLERY DIALOG
    ========================================================================== */
 
 .photo-gallery {
@@ -127,8 +150,8 @@
 .photo-gallery__nav-button {
     position: absolute;
     z-index: 10;
-    background: rgba(255,255,255,0.9);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    background: var(--white-90);
+    box-shadow: 0 2px 8px var(--black-15);
 }
 
 .photo-gallery__nav-button--left {
@@ -144,7 +167,7 @@
     max-height: 70vh;
     object-fit: contain;
     border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px var(--black-30);
 }
 
 .photo-gallery__info-panel {
@@ -168,7 +191,7 @@
 }
 
 /* ==========================================================================
-   NAME MODAL COMPONENT (BEM)
+   NAME MODAL COMPONENT
    ========================================================================== */
 
 .name-modal {
@@ -212,22 +235,22 @@
 }
 
 .upload-button {
-    background: linear-gradient(135deg, var(--wedding-dark) 0%, #404054 100%);
+    background: linear-gradient(135deg, var(--wedding-dark) 0%, var(--color-dark-secondary) 100%);
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px var(--shadow-medium);
 }
 
 .upload-button:hover {
-    background: linear-gradient(135deg, #404054 0%, #5A5A6E 100%);
+    background: linear-gradient(135deg, var(--color-dark-secondary) 0%, var(--color-dark-tertiary) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px var(--shadow-dark);
 }
 
 .wedding-chip-active {
     background-color: var(--wedding-rose) !important;
-    color: white !important;
+    color: var(--color-white) !important;
     font-weight: 500;
-    box-shadow: 0 2px 8px rgba(168, 108, 108, 0.3);
+    box-shadow: 0 2px 8px var(--shadow-rose);
 }
 
 .wedding-chip-inactive {
@@ -242,13 +265,13 @@
 }
 
 .wedding-background {
-    background: linear-gradient(45deg, #ffffff 0%, #E5D1D0 100%);
+    background: linear-gradient(45deg, var(--color-white) 0%, rgb(229, 209, 208) 100%);
 }
 
 .wedding-card {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px var(--shadow-light);
     border-radius: 12px;
-    background: white;
+    background: var(--color-white);
 }
 
 .wedding-filter-button {
@@ -261,30 +284,30 @@
 }
 
 .wedding-button-selected {
-    background-color: #A86C6C !important;
-    color: white !important;
-    border-color: #A86C6C !important;
+    background-color: var(--wedding-rose) !important;
+    color: var(--color-white) !important;
+    border-color: var(--wedding-rose) !important;
 }
 
 .wedding-button-selected:hover {
-    background-color: #94615F !important;
-    border-color: #94615F !important;
+    background-color: var(--color-rose-hover) !important;
+    border-color: var(--color-rose-hover) !important;
 }
 
-/* Name Modal Styling (DEPRECATED - use BEM classes above) */
+/* Name Modal Styling */
 .mud-dialog-content {
     padding: 2rem !important;
 }
 
 .name-modal-header {
-    color: #5D4E75;
+    color: var(--color-purple);
     font-weight: 600;
     text-align: center;
     margin-bottom: 1rem;
 }
 
 .name-modal-description {
-    color: #666;
+    color: var(--wedding-gray);
     text-align: center;
     max-width: 400px;
     margin: 0 auto 2rem auto;
