@@ -1,0 +1,100 @@
+// Color Palette
+// -----------------------------------------------------------------------------
+
+// Wedding Theme Colors
+$wedding-rose: rgb(168, 108, 108);
+$wedding-light-rose: rgb(229, 209, 208);
+$wedding-dark: rgb(44, 44, 62);
+$wedding-gray: rgb(102, 102, 102);
+$wedding-light-gray: rgb(232, 232, 232);
+
+// Basic Colors
+$color-white: rgb(255, 255, 255);
+$color-black: rgb(0, 0, 0);
+
+// Extended Color Palette
+$color-placeholder-light: rgb(240, 240, 240);
+$color-placeholder-dark: rgb(224, 224, 224);
+$color-dark-secondary: rgb(64, 64, 84);
+$color-dark-tertiary: rgb(90, 90, 110);
+$color-purple: rgb(93, 78, 117);
+$color-rose-hover: rgb(148, 97, 95);
+
+// Alpha Colors
+// -----------------------------------------------------------------------------
+
+// White Variants
+$white-20: rgba(255, 255, 255, 0.2);
+$white-80: rgba(255, 255, 255, 0.8);
+$white-90: rgba(255, 255, 255, 0.9);
+
+// Black Variants
+$black-15: rgba(0, 0, 0, 0.15);
+$black-30: rgba(0, 0, 0, 0.3);
+$black-40: rgba(0, 0, 0, 0.4);
+
+// Shadow Colors
+$shadow-light: rgba(0, 0, 0, 0.08);
+$shadow-medium: rgba(0, 0, 0, 0.1);
+$shadow-dark: rgba(0, 0, 0, 0.2);
+$shadow-darker: rgba(0, 0, 0, 0.3);
+$shadow-rose: rgba(168, 108, 108, 0.3);
+
+// Gradients
+// -----------------------------------------------------------------------------
+$wedding-background: linear-gradient(135deg, #{$wedding-light-rose} 0%, #{$wedding-light-rose} 100%);
+
+// Typography
+// -----------------------------------------------------------------------------
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+
+$letter-spacing-wide: 2px;
+$letter-spacing-normal: 1.5px;
+$letter-spacing-tight: 0.5px;
+
+// Spacing
+// -----------------------------------------------------------------------------
+$spacing-xs: 0.25rem;  // 4px
+$spacing-sm: 0.5rem;   // 8px
+$spacing-md: 1rem;     // 16px
+$spacing-lg: 1.5rem;   // 24px
+$spacing-xl: 2rem;     // 32px
+$spacing-xxl: 3rem;    // 48px
+
+// Border Radius
+// -----------------------------------------------------------------------------
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// Breakpoints
+// -----------------------------------------------------------------------------
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-wide: 1440px;
+
+// Z-Index Scale
+// -----------------------------------------------------------------------------
+$z-index-dropdown: 10;
+$z-index-sticky: 20;
+$z-index-fixed: 30;
+$z-index-modal-backdrop: 40;
+$z-index-modal: 50;
+$z-index-popover: 60;
+$z-index-tooltip: 70;
+
+// Sizes
+// -----------------------------------------------------------------------------
+$avatar-size-default: 80px;
+$nav-button-offset: 50px;
+$thumbnail-gap: 8px;
+
+// Animation
+// -----------------------------------------------------------------------------
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;

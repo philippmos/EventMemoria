@@ -1,0 +1,6 @@
+@use '../base' as *;
+
+.main-layout {
+  background: $wedding-background;
+  min-height: 100vh;
+}
