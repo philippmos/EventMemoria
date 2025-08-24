@@ -10,12 +10,13 @@
 
 <PageTitle>@CustomizationOptions.Value.PageTitle</PageTitle>
 
-<NameModal />
+<NameModal OnNameSaved="@OnNameSaved" />
 
 <div class="birds-container">
     <HeaderComponent />
 
-    <PhotoUploadComponent OnPhotosUploaded="@RefreshVirtualizedGrid" />
+    <PhotoUploadComponent @ref="photoUploadComponent" 
+                          OnPhotosUploaded="@RefreshVirtualizedGrid" />
     <VirtualizedPhotoGrid @ref="virtualizedGrid"
                           OnPhotosLoaded="@OnPhotosLoaded" />
 </div>
@@ -24,6 +25,7 @@
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
 
     private VirtualizedPhotoGrid? virtualizedGrid;
+    private PhotoUploadComponent? photoUploadComponent;
     private int totalPhotosCount = 0;
 
     private async Task RefreshPhotos()
@@ -44,5 +46,13 @@
     {
         totalPhotosCount = photos.Count;
         StateHasChanged();
+    }
+
+    private async Task OnNameSaved()
+    {
+        if (photoUploadComponent != null)
+        {
+            await photoUploadComponent.RefreshUserName();
+        }
     }
 }

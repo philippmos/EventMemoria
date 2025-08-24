@@ -1,5 +1,6 @@
 @using Microsoft.Extensions.Options
 @using Vogelhochzeit.Common.Settings
+@using Vogelhochzeit.Components.Photo
 @using Vogelhochzeit.Services.Interfaces
 @using MudBlazor
 
@@ -67,10 +68,14 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter] public EventCallback OnNameSaved { get; set; }
 
     [Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
 
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
     private string UserName { get; set; } = string.Empty;
     private string ValidationMessage { get; set; } = string.Empty;
@@ -119,6 +124,13 @@
 
             ShowModal = false;
             StateHasChanged();
+            
+            if (OnNameSaved.HasDelegate)
+            {
+                await OnNameSaved.InvokeAsync();
+            }
+            
+            NavigationManager.Refresh();
         }
         catch (Exception)
         {

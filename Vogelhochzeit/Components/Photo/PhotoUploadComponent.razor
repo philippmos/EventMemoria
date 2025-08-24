@@ -58,6 +58,12 @@
         _userName = await _userPreferencesService.GetUserNameAsync();
     }
 
+    public async Task RefreshUserName()
+    {
+        _userName = await _userPreferencesService.GetUserNameAsync();
+        StateHasChanged();
+    }
+
     private async Task HandleMultiFileUploadAsync(InputFileChangeEventArgs eventArgs)
     {
         if (eventArgs.FileCount == 0)

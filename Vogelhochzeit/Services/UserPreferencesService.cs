@@ -16,7 +16,7 @@ public class UserPreferencesService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving user name from cookies");
+            logger.LogError(ex, "Error retrieving user name from storage");
             return null;
         }
     }
@@ -29,7 +29,7 @@ public class UserPreferencesService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error setting user name cookie: {Error}", ex.Message);
+            logger.LogError(ex, "Error setting user name to storage: {Error}", ex.Message);
         }
     }
 }
