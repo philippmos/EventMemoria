@@ -6,7 +6,14 @@
     <MudPaper Class="d-flex flex-column justify-center align-center pa-4 mt-3 mb-1 ml-4 mr-3" 
               Style="background: linear-gradient(135deg, #A86C6C 0%, #A86C6C 100%); position: relative; border-radius: 8px;">
         
-        @if (_isUploading)
+        @if (string.IsNullOrWhiteSpace(_userName))
+        {
+            <MudIcon Icon="@Icons.Material.Outlined.LockPerson" Style="color: #ffffff;" />
+            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center;">
+                Bitte gebe zuerst Deinen Namen ein
+            </MudText>
+        }
+        else if (_isUploading)
         {
             <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
             <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
@@ -43,6 +50,13 @@
 
     private bool _isUploading { get; set; } = false;
     private string _uploadProgress = string.Empty;
+
+    private string? _userName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userName = await _userPreferencesService.GetUserNameAsync();
+    }
 
     private async Task HandleMultiFileUploadAsync(InputFileChangeEventArgs eventArgs)
     {
@@ -89,13 +103,8 @@
     {
         try
         {
-            // TODO: Check issue when fetching username
-            var author = "Default";
-            
-            author = await _userPreferencesService.GetUserNameAsync();
-
             using var fileStream = file.OpenReadStream(50 * 1024 * 1024); // 50MB
-            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType, author);
+            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType, _userName);
             
             return UploadResult.Success(file.Name);
         }
