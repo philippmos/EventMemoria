@@ -19,13 +19,13 @@ jobs:
       with:
         node-version: 22.15.0
         cache: 'npm'
-        cache-dependency-path: bun.lock
+        cache-dependency-path: src/EventMemoria.Web/client/bun.lock
 
     - name: 📦 Install dependencies
-      run: npm install -g bun && bun install
+      run: npm install -g bun && cd src/EventMemoria.Web/client && bun install
 
     - name: 🛠️ Build the project
-      run: npm run build:prod
+      run: cd src/EventMemoria.Web/client && npm run build:prod
     
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
