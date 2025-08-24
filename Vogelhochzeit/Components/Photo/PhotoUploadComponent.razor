@@ -6,7 +6,14 @@
     <MudPaper Class="d-flex flex-column justify-center align-center pa-4 mt-3 mb-1 ml-4 mr-3" 
               Style="background: linear-gradient(135deg, #A86C6C 0%, #A86C6C 100%); position: relative; border-radius: 8px;">
         
-        @if (_isUploading)
+        @if (string.IsNullOrWhiteSpace(_userName))
+        {
+            <MudIcon Icon="@Icons.Material.Outlined.LockPerson" Style="color: #ffffff;" />
+            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center;">
+                Bitte gebe zuerst Deinen Namen ein
+            </MudText>
+        }
+        else if (_isUploading)
         {
             <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
             <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
@@ -39,9 +46,23 @@
     [Inject] private IStorageService _storageService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private IFileValidationService _fileValidationService { get; set; } = default!;
+    [Inject] private IUserPreferencesService _userPreferencesService { get; set; } = default!;
 
     private bool _isUploading { get; set; } = false;
     private string _uploadProgress = string.Empty;
+
+    private string? _userName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userName = await _userPreferencesService.GetUserNameAsync();
+    }
+
+    public async Task RefreshUserName()
+    {
+        _userName = await _userPreferencesService.GetUserNameAsync();
+        StateHasChanged();
+    }
 
     private async Task HandleMultiFileUploadAsync(InputFileChangeEventArgs eventArgs)
     {
@@ -52,7 +73,7 @@
 
         var files = eventArgs.GetMultipleFiles(maximumFileCount: 50).ToList();
         var validationResult = _fileValidationService.ValidateFiles(files);
-        
+
         if (!validationResult.IsValid)
         {
             Snackbar.Add(validationResult.ErrorMessage, Severity.Error);
@@ -79,7 +100,7 @@
         }
 
         await HandleUploadResults(uploadResults);
-        
+
         _isUploading = false;
         _uploadProgress = string.Empty;
     }
@@ -89,7 +110,7 @@
         try
         {
             using var fileStream = file.OpenReadStream(50 * 1024 * 1024); // 50MB
-            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType);
+            await _storageService.UploadFileAsync(fileStream, file.Name, file.ContentType, _userName);
             
             return UploadResult.Success(file.Name);
         }

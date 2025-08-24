@@ -45,4 +45,9 @@ public static class ApplicationConstants
         public const int PhotoCardOffset = 60;
         public const int FileNameTruncateLength = 15;
     }
+
+    public static class UserPreferences
+    {
+        public const string StorageKey = "author_name";
+    }
 }

@@ -17,6 +17,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPhotoGridService, PhotoGridService>();
         services.AddScoped<IFileValidationService, FileValidationService>();
+        services.AddScoped<IUserPreferencesService, UserPreferencesService>();
 
         return services;
     }

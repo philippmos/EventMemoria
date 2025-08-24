@@ -1,0 +1,155 @@
+@using Microsoft.Extensions.Options
+@using Vogelhochzeit.Common.Settings
+@using Vogelhochzeit.Components.Photo
+@using Vogelhochzeit.Services.Interfaces
+@using MudBlazor
+
+@if (ShowModal)
+{
+    <MudDialog Visible="@ShowModal" Options="@DialogOptions">
+        <DialogContent>
+            <div class="d-flex flex-column align-center" style="text-align: center;">
+                
+                         
+                <MudText Typo="Typo.h1"
+                         GutterBottom="true"
+                         Style="color: #A86C6C; font-weight: 400;">
+                    @CustomizationOptions.Value.NameModal.Title
+                </MudText>
+
+
+                <MudText Typo="Typo.h5" 
+                         GutterBottom="true"
+                         Style="color: #A86C6C; font-weight: 600;">
+                    @CustomizationOptions.Value.NameModal.SubTitle
+                </MudText>
+                
+                <MudText Typo="Typo.body1" 
+                         Class="mb-4" 
+                         Style="color: #666; max-width: 400px;">
+                    Damit Deine hochgeladenen Bilder richtig zugeordnet werden können, benötigen wir Deinen Namen als Foto-Author.
+                </MudText>
+
+                <MudTextField @bind-Value="UserName"
+                              Label="Dein Name"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Normal"
+                              FullWidth="true"
+                              MaxLength="50"
+                              Counter="50"
+                              Immediate="true"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="Icons.Material.Filled.Person" />
+
+                @if (!string.IsNullOrWhiteSpace(ValidationMessage))
+                {
+                    <MudAlert Severity="Severity.Warning" 
+                              Class="mt-3" 
+                              Style="max-width: 350px;">
+                        @ValidationMessage
+                    </MudAlert>
+                }
+            </div>
+        </DialogContent>
+        
+        <DialogActions>
+            <MudButton OnClick="@(() => SaveAndClose())"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       StartIcon="Icons.Material.Filled.Check"
+                       Disabled="!IsInputValid()"
+                       FullWidth="true">
+                Namen speichern
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+}
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter] public EventCallback OnNameSaved { get; set; }
+
+    [Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
+
+    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private string UserName { get; set; } = string.Empty;
+    private string ValidationMessage { get; set; } = string.Empty;
+    private bool ShowModal { get; set; } = false;
+
+    private DialogOptions DialogOptions => new()
+    {
+        CloseOnEscapeKey = false,
+        CloseButton = false,
+        BackdropClick = false,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAndShowModal();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task CheckAndShowModal()
+    {
+        var userName = await UserPreferencesService.GetUserNameAsync();
+
+        if (string.IsNullOrWhiteSpace(userName))
+        {
+            ShowModal = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task SaveAndClose()
+    {
+        if (!IsInputValid())
+        {
+            ValidationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
+            return;
+        }
+
+        try
+        {
+            await UserPreferencesService.SetUserNameAsync(UserName.Trim());
+
+            ShowModal = false;
+            StateHasChanged();
+            
+            if (OnNameSaved.HasDelegate)
+            {
+                await OnNameSaved.InvokeAsync();
+            }
+            
+            NavigationManager.Refresh();
+        }
+        catch (Exception)
+        {
+            ValidationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
+        }
+    }
+
+    private bool IsInputValid()
+    {
+        if (string.IsNullOrWhiteSpace(UserName))
+        {
+            return false;
+        }
+
+        if (UserName.Trim().Length < 3)
+        {
+            return false;
+        }
+
+        return true;
+    }
+}
