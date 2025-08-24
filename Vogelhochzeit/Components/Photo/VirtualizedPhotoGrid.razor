@@ -28,9 +28,9 @@
                         {
                             <PhotoCardComponent Photo="@photo"
                                                 PhotosPerRow="@_photosPerRow"
-                                                IsImageLoaded="@_loadedImages.Contains(photo.Id)"
+                                                IsPhotoLoaded="@_loadedPhotos.Contains(photo.Id)"
                                                 OnPhotoClicked="@OnPhotoClickedAsync"
-                                                OnImageLoaded="@OnImageLoadedAsync" />
+                                                OnPhotoLoaded="@OnPhotoLoadedAsync" />
                         }
                     </div>
                 </MudVirtualize>
@@ -50,19 +50,19 @@
 @code {
     [Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
 
-    [Inject] private IOptions<ImageOptions> ImageOptions { get; set; } = default!;
+    [Inject] private IOptions<PhotoOptions> _photoOptions { get; set; } = default!;
     [Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
     [Inject] private IStorageService _storageService { get; set; } = default!;
 
     private int _photosPerRow { get; set; }
     private List<Photo> _allPhotos = new();
     private List<List<Photo>> _photoRows = new();
-    private HashSet<string> _loadedImages = new();
+    private HashSet<string> _loadedPhotos = new();
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        _photosPerRow = ImageOptions.Value.DefaultPhotosPerRow;
+        _photosPerRow = _photoOptions.Value.DefaultPhotosPerRow;
         await LoadAllPhotosAsync();
     }
 
@@ -114,11 +114,11 @@
 
     private int GetRowHeight() => PhotoGridService.GetRowHeight(_photosPerRow);
 
-    private async Task OnImageLoadedAsync(string photoId)
+    private async Task OnPhotoLoadedAsync(string photoId)
     {
-        if (!_loadedImages.Contains(photoId))
+        if (!_loadedPhotos.Contains(photoId))
         {
-            _loadedImages.Add(photoId);
+            _loadedPhotos.Add(photoId);
             await InvokeAsync(StateHasChanged);
         }
     }
@@ -141,7 +141,7 @@
         var galleryPhotos = _allPhotos.Skip(startIndex).Take(pageSize).ToList();
         var adjustedIndex = Math.Max(0, initialIndex - startIndex);
 
-        var parameters = new DialogParameters<ImageGalleryDialog>
+        var parameters = new DialogParameters<PhotoGalleryDialog>
         {
             { x => x.Photos, galleryPhotos },
             { x => x.InitialIndex, adjustedIndex },
@@ -158,12 +158,12 @@
             FullScreen = true
         };
 
-        await DialogService.ShowAsync<ImageGalleryDialog>("Fotogalerie", parameters, options);
+        await DialogService.ShowAsync<PhotoGalleryDialog>("Fotogalerie", parameters, options);
     }
 
     public async Task RefreshPhotos()
     {
-        _loadedImages.Clear();
+        _loadedPhotos.Clear();
         await LoadAllPhotosAsync();
     }
 }

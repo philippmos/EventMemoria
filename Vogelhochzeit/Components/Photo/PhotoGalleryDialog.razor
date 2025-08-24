@@ -49,7 +49,7 @@
                     <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
                                   Color="Color.Primary"
                                   Size="Size.Large"
-                                  OnClick="PreviousImage"
+                                  OnClick="PreviousPhoto"
                                   Disabled="@(!CanNavigateLeft())"
                                   Style="position: absolute; left: -50px; z-index: 10; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
                     
@@ -60,7 +60,7 @@
                     <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
                                   Color="Color.Primary"
                                   Size="Size.Large"
-                                  OnClick="NextImage"
+                                  OnClick="NextPhoto"
                                   Disabled="@(!CanNavigateRight())"
                                   Style="position: absolute; right: -50px; z-index: 10; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
                 </div>
@@ -87,7 +87,7 @@
                             var index = i;
                             <MudPaper Class="@GetThumbnailClass(index)"
                                      Style="cursor: pointer; transition: all 0.2s ease;"
-                                     @onclick="() => SetCurrentImage(index)">
+                                     @onclick="() => SetCurrentPhoto(index)">
                                 <MudImage Src="@Photos[index].Url"
                                          Alt="Thumbnail"
                                          Width="60"
@@ -131,7 +131,7 @@
         CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
     }
 
-    private void NextImage()
+    private void NextPhoto()
     {
         if (CurrentIndex < Photos.Count - 1)
         {
@@ -148,7 +148,7 @@
         }
     }
 
-    private void PreviousImage()
+    private void PreviousPhoto()
     {
         if (CurrentIndex > 0)
         {
@@ -165,7 +165,7 @@
         }
     }
 
-    private void SetCurrentImage(int index)
+    private void SetCurrentPhoto(int index)
     {
         if (index >= 0 && index < Photos.Count)
         {

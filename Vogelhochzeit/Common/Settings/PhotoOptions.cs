@@ -1,6 +1,6 @@
 namespace Vogelhochzeit.Common.Settings;
 
-public record ImageOptions
+public record PhotoOptions
 {
     public string ContainerName { get; init; } = string.Empty;
     public IEnumerable<string> AllowedFileTypes { get; init; } = [];
