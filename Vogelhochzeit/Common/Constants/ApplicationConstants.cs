@@ -42,7 +42,7 @@ public static class ApplicationConstants
     public static class Ui
     {
         public const string GridContainerHeight = "70vh";
-        public const int PhotoCardImageOffset = 60;
+        public const int PhotoCardOffset = 60;
         public const int FileNameTruncateLength = 15;
     }
 }

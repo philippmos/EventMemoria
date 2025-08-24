@@ -9,10 +9,10 @@ namespace Vogelhochzeit.Services;
 
 public class BlobStorageService(
     BlobServiceClient blobServiceClient,
-    IOptions<ImageOptions> imageOptions,
+    IOptions<PhotoOptions> photoOptions,
     ILogger<BlobStorageService> logger) : IStorageService
 {
-    private readonly string _containerName = imageOptions.Value.ContainerName;
+    private readonly string _containerName = photoOptions.Value.ContainerName;
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string? contentType = null)
     {

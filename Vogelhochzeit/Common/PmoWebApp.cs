@@ -49,7 +49,7 @@ public static class PmoWebApp
 
     private static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ImageOptions>(configuration.GetSection(nameof(ImageOptions)));
+        services.Configure<PhotoOptions>(configuration.GetSection(nameof(PhotoOptions)));
         services.Configure<CustomizationOptions>(configuration.GetSection(nameof(CustomizationOptions)));
 
         return services;

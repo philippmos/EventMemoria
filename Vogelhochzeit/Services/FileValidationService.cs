@@ -7,10 +7,8 @@ using Vogelhochzeit.Services.Interfaces;
 
 namespace Vogelhochzeit.Services;
 
-public class FileValidationService(IOptions<ImageOptions> imageOptions) : IFileValidationService
+public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileValidationService
 {
-    private readonly ImageOptions _imageOptions = imageOptions.Value;
-
     public ValidationResult ValidateFile(IBrowserFile file)
     {
         if (file == null)
@@ -25,7 +23,7 @@ public class FileValidationService(IOptions<ImageOptions> imageOptions) : IFileV
 
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
 
-        if (!_imageOptions.AllowedFileTypes.Contains(extension))
+        if (!photoOptions.Value.AllowedFileTypes.Contains(extension))
         {
             return ValidationResult.Failure($"Dateityp '{extension}' wird nicht unterstützt");
         }
