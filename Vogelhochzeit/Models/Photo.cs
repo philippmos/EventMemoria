@@ -10,6 +10,7 @@ public class Photo
     public string? Description { get; init; }
     public string? Alt { get; init; }
     public bool IsLoaded { get; set; } = true;
+    public string Author { get; set; } = string.Empty;
 
     public string FormattedFileSize => FormatFileSize(FileSize);
 

@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
+using Vogelhochzeit.Common.Constants;
 using Vogelhochzeit.Common.Settings;
 using Vogelhochzeit.Models;
 using Vogelhochzeit.Services.Interfaces;
@@ -35,10 +36,10 @@ public class BlobStorageService(
                 HttpHeaders = blobHttpHeaders,
                 Tags = new Dictionary<string, string>
                 {
-                    { "Author", SanitizeTagValue(author ?? "Anonymous") },
-                    { "FileName", SanitizeTagValue(fileName) },
-                    { "UploadedAt", DateTime.UtcNow.ToString("o") }
-                },
+                    { ApplicationConstants.ImageTags.Author, SanitizeTagValue(author ?? "Anonymous") },
+                    { ApplicationConstants.ImageTags.FileName, SanitizeTagValue(fileName) },
+                    { ApplicationConstants.ImageTags.UploadedAt, DateTime.UtcNow.ToString("o") }
+                }
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
@@ -54,7 +55,7 @@ public class BlobStorageService(
         }
     }
 
-    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24, string? prefix = null)
+    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24)
     {
         try
         {
@@ -67,7 +68,7 @@ public class BlobStorageService(
 
             var allBlobs = new List<BlobItem>();
 
-            await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, traits: BlobTraits.Metadata))
+            await foreach (var blobItem in containerClient.GetBlobsAsync(traits: BlobTraits.All))
             {
                 allBlobs.Add(blobItem);
             }
@@ -99,7 +100,6 @@ public class BlobStorageService(
         }
     }
 
-
     private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient)
     {
         return new Photo
@@ -108,7 +108,8 @@ public class BlobStorageService(
             FileName = blobItem.Name,
             Url = blobClient.Uri.ToString(),
             UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
-            FileSize = blobItem.Properties.ContentLength ?? 0
+            FileSize = blobItem.Properties.ContentLength ?? 0,
+            Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value
         };
     }
 

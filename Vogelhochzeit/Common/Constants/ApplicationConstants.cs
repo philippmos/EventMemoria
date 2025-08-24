@@ -8,6 +8,13 @@ public static class ApplicationConstants
         public const int MaxFileCount = 50;
     }
 
+    public static class ImageTags
+    {
+        public const string Author = "Author";
+        public const string FileName = "FileName";
+        public const string UploadedAt = "UploadedAt";
+    }
+
     public static class Pagination
     {
         public const int DefaultPageSize = 24;
