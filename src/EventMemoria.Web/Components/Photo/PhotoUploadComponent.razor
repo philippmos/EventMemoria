@@ -53,9 +53,13 @@
 
 	private string? _userName { get; set; }
 
-	protected override async Task OnInitializedAsync()
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		_userName = await _userPreferencesService.GetUserNameAsync();
+		if (firstRender)
+		{
+			_userName = await _userPreferencesService.GetUserNameAsync();
+			StateHasChanged();
+		}
 	}
 
 	public async Task RefreshUserName()
