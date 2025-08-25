@@ -40,18 +40,18 @@ public class UploadService(
         try
         {
             using var image = new MagickImage(fileBytes);
-            image.Resize(700, 700);
-            image.Quality = 85;
-
-            var thumbnailFormat = MagickFormat.Jpeg;
+            image.Resize(
+                ApplicationConstants.FileUpload.Thumbnail.ResizeWidth,
+                ApplicationConstants.FileUpload.Thumbnail.ResizeHeight);
+            image.Quality = ApplicationConstants.FileUpload.Thumbnail.Quality;
 
             using var thumbnailStream = new MemoryStream();
-            image.Write(thumbnailStream, thumbnailFormat);
+            image.Write(thumbnailStream, ApplicationConstants.FileUpload.Thumbnail.Format);
             var thumbnailBytes = thumbnailStream.ToArray();
 
             using var uploadStream = new MemoryStream(thumbnailBytes);
 
-            var thumbnailFileName = $"{PhotoHelper.GetFileNameWithoutExtension(fileName)}.{thumbnailFormat.ToString().ToLower()}";
+            var thumbnailFileName = $"{PhotoHelper.GetFileNameWithoutExtension(fileName)}.{ApplicationConstants.FileUpload.Thumbnail.Format.ToString().ToLower()}";
             await storageService.UploadThumbnailAsync(uploadStream, thumbnailFileName, contentType, userName);
         }
         catch (Exception ex)

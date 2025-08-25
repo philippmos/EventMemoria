@@ -75,7 +75,7 @@
 			return;
 		}
 
-		var files = eventArgs.GetMultipleFiles(maximumFileCount: 50).ToList();
+		var files = eventArgs.GetMultipleFiles(ApplicationConstants.FileUpload.MaxFileCount).ToList();
 		var validationResult = _fileValidationService.ValidateFiles(files);
 
 		if (!validationResult.IsValid)

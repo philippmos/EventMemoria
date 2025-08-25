@@ -1,3 +1,4 @@
+using System.Linq;
 using EventMemoria.Web.Common.Constants;
 using EventMemoria.Web.Models;
 using EventMemoria.Web.Services.Interfaces;
@@ -20,11 +21,11 @@ public class PhotoGridService : IPhotoGridService
     }
 
     public int GetRowHeight(int photosPerRow)
-        => ApplicationConstants.PhotoGrid.PhotosPerRowHeights.GetValueOrDefault(photosPerRow, 250);
+        => GetConfiguration(photosPerRow)?.Height ?? 250;
 
     public string GetPhotoContainerStyle(int photosPerRow)
     {
-        var width = ApplicationConstants.PhotoGrid.PhotosPerRowWidths.GetValueOrDefault(photosPerRow, "calc(16.666% - 10px)");
+        var width = GetConfiguration(photosPerRow)?.Width;
         return $"width: {width}; min-width: {width}; flex-shrink: 0;";
     }
 
@@ -45,4 +46,7 @@ public class PhotoGridService : IPhotoGridService
     public bool IsValidPhotosPerRow(int photosPerRow)
         => photosPerRow >= ApplicationConstants.PhotoGrid.MinPhotosPerRow
         && photosPerRow <= ApplicationConstants.PhotoGrid.MaxPhotosPerRow;
+
+    private PhotoGridConfiguration? GetConfiguration(int photosPerRow)
+        => ApplicationConstants.PhotoGrid.Configuration.FirstOrDefault(x => x.Rows == photosPerRow);
 }

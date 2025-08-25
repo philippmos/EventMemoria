@@ -27,5 +27,5 @@
     [Parameter] public EventCallback<int> OnPhotosPerRowChanged { get; set; }
 
     private static int[] GetPhotosPerRowOptions() 
-        => ApplicationConstants.PhotoGrid.PhotosPerRowHeights.Keys.OrderBy(k => k).ToArray();
+        => ApplicationConstants.PhotoGrid.Configuration.Select(x => x.Rows).OrderBy(k => k).ToArray();
 }

@@ -1,3 +1,4 @@
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
 @using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
@@ -158,7 +159,7 @@
             return false;
         }
 
-        if (UserName.Trim().Length < 3)
+        if (UserName.Trim().Length < ApplicationConstants.UserPreferences.UserNameMinLength)
         {
             return false;
         }
