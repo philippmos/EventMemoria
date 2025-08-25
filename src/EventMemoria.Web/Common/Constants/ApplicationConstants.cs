@@ -4,7 +4,7 @@ public static class ApplicationConstants
 {
     public static class FileUpload
     {
-        public const long MaxFileSizeInBytes = 50 * 1024 * 1024; // 50MB
+        public const long MaxFileSizeInBytes = 150 * 1024 * 1024; // 150MB
         public const int MaxFileCount = 50;
     }
 

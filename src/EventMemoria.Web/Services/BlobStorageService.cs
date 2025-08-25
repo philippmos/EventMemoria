@@ -1,8 +1,8 @@
-using System.Text.RegularExpressions;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EventMemoria.Web.Common.Constants;
 using EventMemoria.Web.Common.Settings;
+using EventMemoria.Web.Helpers;
 using EventMemoria.Web.Models;
 using EventMemoria.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
@@ -14,15 +14,34 @@ public class BlobStorageService(
     IOptions<PhotoOptions> photoOptions,
     ILogger<BlobStorageService> logger) : IStorageService
 {
-    private readonly string _containerName = photoOptions.Value.ContainerName;
+    public async Task<string> UploadThumbnailAsync(Stream fileStream, string fileName, string? contentType = null, string? author = null)
+    {
+        return await UploadFileAsync(
+            photoOptions.Value.StorageContainer.Thumbnails,
+            fileStream,
+            fileName,
+            contentType,
+            author);
+    }
 
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string? contentType = null, string? author = null)
+    public async Task<string> UploadFullSizeAsync(Stream fileStream, string fileName, string? contentType = null, string? author = null)
+    {
+        return await UploadFileAsync(
+            photoOptions.Value.StorageContainer.FullSize,
+            fileStream,
+            fileName,
+            contentType,
+            author);
+    }
+
+
+    private async Task<string> UploadFileAsync(string containerName, Stream fileStream, string fileName, string? contentType = null, string? author = null)
     {
         try
         {
-            var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
-            var uniqueFileName = $"{Guid.NewGuid()}{GetFileExtension(fileName)}";
+            var uniqueFileName = $"{Guid.NewGuid()}{PhotoHelper.GetFileExtension(fileName)}";
             var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
             var blobHttpHeaders = new BlobHttpHeaders();
@@ -36,15 +55,15 @@ public class BlobStorageService(
                 HttpHeaders = blobHttpHeaders,
                 Tags = new Dictionary<string, string>
                 {
-                    { ApplicationConstants.ImageTags.Author, SanitizeTagValue(author ?? "Anonymous") },
-                    { ApplicationConstants.ImageTags.FileName, SanitizeTagValue(fileName) },
+                    { ApplicationConstants.ImageTags.Author, SanitizingHelper.SanitizeValue(author ?? "Anonymous") },
+                    { ApplicationConstants.ImageTags.FileName, SanitizingHelper.SanitizeValue(fileName) },
                     { ApplicationConstants.ImageTags.UploadedAt, DateTime.UtcNow.ToString("o") }
                 }
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
 
-            logger.LogInformation("File {FileName} successfully uploaded as {BlobName} by {Author}", fileName, uniqueFileName, author ?? "Anonymous");
+            logger.LogInformation("File {FileName} successfully uploaded as {BlobName}", fileName, uniqueFileName);
 
             return uniqueFileName;
         }
@@ -57,9 +76,11 @@ public class BlobStorageService(
 
     public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24)
     {
+        var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
+
         try
         {
-            var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
 
             if (!await containerClient.ExistsAsync())
             {
@@ -89,13 +110,13 @@ public class BlobStorageService(
             }
 
             logger.LogInformation("Retrieved page {Page} with {Count} photos from container {ContainerName}. Total: {TotalCount}",
-                page, photos.Count, _containerName, totalCount);
+                page, photos.Count, thumbnailContainer, totalCount);
 
             return new PagedResult<Photo>(photos, page, pageSize, totalCount);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting paged photos from container {ContainerName}", _containerName);
+            logger.LogError(ex, "Error getting paged photos from container {ContainerName}", thumbnailContainer);
             throw;
         }
     }
@@ -111,35 +132,5 @@ public class BlobStorageService(
             FileSize = blobItem.Properties.ContentLength ?? 0,
             Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value
         };
-    }
-
-    private static string GetFileExtension(string fileName)
-        => Path.GetExtension(fileName).ToLowerInvariant();
-
-
-    private static string SanitizeTagValue(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return "Unknown";
-        }
-
-        var sanitized = Regex.Replace(value, @"[^a-zA-Z0-9\s\+\-\.\/:=_]", "_");
-
-        sanitized = sanitized.Trim();
-
-        if (string.IsNullOrEmpty(sanitized))
-        {
-            sanitized = "Unknown";
-        }
-
-        if (sanitized.Length > 256)
-        {
-            sanitized = sanitized[..256];
-        }
-
-        sanitized = sanitized.TrimEnd();
-
-        return sanitized;
     }
 }

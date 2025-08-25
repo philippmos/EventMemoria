@@ -67,21 +67,24 @@
 }
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    
-    [Parameter] public EventCallback OnNameSaved { get; set; }
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
+	[Parameter] public EventCallback OnNameSaved { get; set; }
 
-    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+	[Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
 
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
 
-    private string UserName { get; set; } = string.Empty;
-    private string ValidationMessage { get; set; } = string.Empty;
-    private bool ShowModal { get; set; } = false;
+	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-    private DialogOptions DialogOptions => new()
+	[Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+
+	private string UserName { get; set; } = string.Empty;
+	private string ValidationMessage { get; set; } = string.Empty;
+	private bool ShowModal { get; set; } = false;
+
+	private DialogOptions DialogOptions => new()
     {
         CloseOnEscapeKey = false,
         CloseButton = false,
@@ -90,37 +93,46 @@
         FullWidth = true
     };
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await CheckAndShowModal();
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await CheckAndShowModal();
+		}
+		await base.OnAfterRenderAsync(firstRender);
+	}
 
-    private async Task CheckAndShowModal()
-    {
-        var userName = await UserPreferencesService.GetUserNameAsync();
+	private async Task CheckAndShowModal()
+	{
+		var userName = await UserPreferencesService.GetUserNameAsync();
 
-        if (string.IsNullOrWhiteSpace(userName))
-        {
-            ShowModal = true;
-            await InvokeAsync(StateHasChanged);
-        }
-    }
+		if (string.IsNullOrWhiteSpace(userName))
+		{
+			ShowModal = true;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
 
-    private async Task SaveAndClose()
-    {
-        if (!IsInputValid())
-        {
-            ValidationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
-            return;
-        }
+	private async Task SaveAndClose()
+	{
+		if (!IsInputValid())
+		{
+			ValidationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
+			return;
+		}
 
-        try
-        {
-            await UserPreferencesService.SetUserNameAsync(UserName.Trim());
+		try
+		{
+			var savedUserName = await UserPreferencesService.SetUserNameAsync(UserName.Trim());
+			if (!string.IsNullOrWhiteSpace(savedUserName))
+			{
+				Snackbar.Add($"Super, {savedUserName}! Du kannst jetzt Deine Bilder hochladen.", Severity.Success);
+			}
+			else
+			{
+				Snackbar.Add($"Dein Name konnte nicht gespeichert werden.", Severity.Warning);
+			}
+
 
             ShowModal = false;
             StateHasChanged();
@@ -135,6 +147,7 @@
         catch (Exception)
         {
             ValidationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
+			Snackbar.Add($"Dein Name konnte nicht gespeichert werden.", Severity.Warning);
         }
     }
 

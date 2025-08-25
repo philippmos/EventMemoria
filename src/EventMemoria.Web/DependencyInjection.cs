@@ -14,7 +14,7 @@ public static class DependencyInjection
 
         services.AddSingleton(x => new BlobServiceClient(connectionString));
         services.AddScoped<IStorageService, BlobStorageService>();
-
+        services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IPhotoGridService, PhotoGridService>();
         services.AddScoped<IFileValidationService, FileValidationService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();

@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Constants;
+using EventMemoria.Web.Helpers;
 using EventMemoria.Web.Services.Interfaces;
 
 namespace EventMemoria.Web.Services;
@@ -12,7 +13,11 @@ public class UserPreferencesService(
     {
         try
         {
-            return await localStorage.GetItemAsync<string>(ApplicationConstants.UserPreferences.StorageKey);
+            var storageValue = await localStorage.GetItemAsync<string>(ApplicationConstants.UserPreferences.StorageKey);
+
+            return storageValue is null
+                ? null
+                : SanitizingHelper.SanitizeValue(storageValue);
         }
         catch (Exception ex)
         {
@@ -21,15 +26,18 @@ public class UserPreferencesService(
         }
     }
 
-    public async Task SetUserNameAsync(string userName)
+    public async Task<string?> SetUserNameAsync(string userName)
     {
         try
         {
-            await localStorage.SetItemAsync(ApplicationConstants.UserPreferences.StorageKey, userName);
+            var sanitizedUserName = SanitizingHelper.SanitizeValue(userName);
+            await localStorage.SetItemAsync(ApplicationConstants.UserPreferences.StorageKey, sanitizedUserName);
+            return sanitizedUserName;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error setting user name to storage: {Error}", ex.Message);
+            return null;
         }
     }
 }
