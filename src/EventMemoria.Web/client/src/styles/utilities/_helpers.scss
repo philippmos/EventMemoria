@@ -1,0 +1,7 @@
+/*
+ * px2rem - Calculates the rem-Value of a given px-Value
+ */
+@function px2rem($px) {
+    $calcRem: calc($px / 16px);
+    @return #{$calcRem}rem;
+}

@@ -2,7 +2,7 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/* ]
   pull_request:
     branches: [ main ]
 
@@ -13,6 +13,19 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: ⚙️ Setup Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.15.0
+        cache: 'npm'
+        cache-dependency-path: src/EventMemoria.Web/client/bun.lock
+
+    - name: 📦 Install dependencies
+      run: npm install -g bun && cd src/EventMemoria.Web/client && bun install
+
+    - name: 🛠️ Build the project
+      run: cd src/EventMemoria.Web/client && npm run build:prod
     
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4

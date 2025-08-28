@@ -3,16 +3,16 @@
 @using EventMemoria.Web.Services.Interfaces
 @using EventMemoria.Web.Services
 
-<div class="photo-container" style="@PhotoGridService.GetPhotoContainerStyle(PhotosPerRow)">
-    <MudCard Class="photo-card-virtual" Style="height: 100%; transition: all 0.2s ease;">
-        <MudCardContent Class="pa-1" Style="height: 100%;">
-            <div class="photo-container" 
-                 style="height: @(GetPhotoContainerHeight())px; position: relative; overflow: hidden; border-radius: 8px; cursor: pointer;"
+<div class="photo-grid__container" style="@PhotoGridService.GetPhotoContainerStyle(PhotosPerRow)">
+    <MudCard Class="photo-card">
+        <MudCardContent Class="photo-card__content pa-1">
+            <div class="photo-card__image-container" 
+                 style="height: @(GetPhotoContainerHeight())px;"
                  @onclick="@(() => OnPhotoClicked.InvokeAsync(Photo))">
                 
                 @if (!IsPhotoLoaded)
                 {
-                    <div class="photo-placeholder" style="width: 100%; height: 100%; background: linear-gradient(45deg, #f0f0f0, #e0e0e0); display: flex; align-items: center; justify-content: center;">
+                    <div class="photo-card__placeholder">
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" />
                     </div>
                 }
@@ -21,11 +21,12 @@
                     Src="@Photo.Url"
                     Alt="@(Photo.Alt ?? "Foto")"
                     ObjectFit="ObjectFit.Cover"
-                    Style="@GetPhotoStyle()"
+                    Class="photo-card__image"
+                    Style="@GetPhotoOpacityStyle()"
                     @onload="@OnPhotoLoadAsync" />
             </div>
             
-            <MudText Typo="Typo.caption" Class="mt-1 text-truncate" Style="font-size: 0.7rem;">
+            <MudText Typo="Typo.caption" Class="photo-card__filename mt-1 text-truncate">
                 @PhotoGridService.GetShortFileName(Photo.FileName)
             </MudText>
         </MudCardContent>
@@ -46,11 +47,9 @@
 		return PhotoGridService.GetRowHeight(PhotosPerRow) - ApplicationConstants.Ui.PhotoCardOffset;
 	}
 
-    private string GetPhotoStyle()
+    private string GetPhotoOpacityStyle()
     {
-        var baseStyle = "width: 100%; height: 100%; object-fit: cover; transition: all 0.3s ease;";
-        baseStyle += IsPhotoLoaded ? " opacity: 1;" : " opacity: 0;";
-        return baseStyle;
+        return IsPhotoLoaded ? "opacity: 1;" : "opacity: 0;";
     }
 
     private async Task OnPhotoLoadAsync()
