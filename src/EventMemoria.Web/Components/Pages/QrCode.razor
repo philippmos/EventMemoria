@@ -1,0 +1,105 @@
+@page "/qrcode"
+
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+@using QRCoder.Core
+
+@rendermode InteractiveServer
+
+<PageTitle>@CustomizationOptions.Value.PageTitle - QR Code</PageTitle>
+
+<div class="birds-container">
+	<HeaderComponent />
+
+	@if (_svgCode is null)
+	{
+		<div class="qr-loading">
+			<MudProgressCircular Class="qr-loading-spinner" Size="Size.Large" Indeterminate="true" />
+			<MudText Typo="Typo.h6">QR Code wird generiert...</MudText>
+		</div>
+	}
+	else
+	{
+		<div class="qr-code-container">
+			<MudText Typo="Typo.h4" Class="qr-code-title">
+				QR Code
+			</MudText>
+			
+			<MudText Typo="Typo.body1" Class="qr-code-description">
+				Scanne diesen QR Code, um zur Event-Galerie zu gelangen und Deine Fotos hochzuladen.
+			</MudText>
+			
+			<div class="qr-code-wrapper">
+				@_svgCode
+			</div>
+			
+			<div class="download-section">
+				<MudButton Variant="Variant.Filled"
+						   Class="qr-download-button"
+						   StartIcon="@Icons.Material.Filled.Download"
+						   OnClick="DownloadSvg"
+						   Size="Size.Large">
+					QR Code herunterladen
+				</MudButton>
+				
+				<MudButton Variant="Variant.Outlined"
+						   Class="qr-copy-button"
+						   StartIcon="@Icons.Material.Filled.ContentCopy"
+						   OnClick="CopyUrl"
+						   Size="Size.Large"
+						   Style="margin-top: 0.5rem;">
+					URL kopieren
+				</MudButton>
+			</div>
+		</div>
+	}
+</div>
+
+@code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+	[Inject] private ILogger<QrCode> Logger { get; set; } = default!;
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+	private MarkupString? _svgCode = null;
+	private string? _svgContent = null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var targetUrl = CustomizationOptions.Value.QrCodeTargetUrl;
+		var qrCodeGenerator = new QRCodeGenerator();
+		var qrCodeDate = qrCodeGenerator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.Q);
+
+		var qrCode = new SvgQRCode(qrCodeDate);
+
+		var svgCode = qrCode.GetGraphic(20);
+		_svgContent = svgCode;
+		_svgCode = new MarkupString(svgCode);
+
+		Logger.LogInformation("QR Code generated for URL: {Url}", targetUrl);
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task DownloadSvg()
+	{
+		if (_svgContent is null)
+		{
+			return;
+		}
+
+		var fileName = "qr-code.svg";
+		var bytes = System.Text.Encoding.UTF8.GetBytes(_svgContent);
+		var base64 = Convert.ToBase64String(bytes);
+		var dataUrl = $"data:image/svg+xml;base64,{base64}";
+
+		await JSRuntime.InvokeVoidAsync("downloadFile", dataUrl, fileName);
+	}
+
+	private async Task CopyUrl()
+	{
+		var targetUrl = CustomizationOptions.Value.QrCodeTargetUrl;
+		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", targetUrl);
+		
+		Logger.LogInformation("URL copied to clipboard: {Url}", targetUrl);
+	}
+}

@@ -14,5 +14,6 @@
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.8.1" />
     <PackageReference Include="MudBlazor" Version="8.*" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
+    <PackageReference Include="QRCoder.Core" Version="1.0.3" />
   </ItemGroup>
 </Project>
