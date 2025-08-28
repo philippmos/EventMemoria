@@ -1,3 +1,4 @@
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Models
 @using EventMemoria.Web.Services.Interfaces
 @using MudBlazor
@@ -74,7 +75,7 @@
                             @CurrentPhoto.FormattedFileSize
                         </MudText>
                         <MudText Typo="Typo.body2" Class="text-muted">
-                            @CurrentPhoto.UploadDate.ToString("dd.MM.yyyy HH:mm")
+                            @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
                         </MudText>
                         <MudText Typo="Typo.body2" Class="text-muted">
                             <strong>Author:</strong> @CurrentPhoto.Author
@@ -194,13 +195,13 @@
             StateHasChanged();
             
             CurrentPage--;
-            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, 24);
+            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
             Photos = pagedResult.Items;
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Fehler beim Laden der vorherigen Seite: {ex.Message}", Severity.Error);
-            CurrentPage++; // Rollback
+            CurrentPage++;
         }
         finally
         {
@@ -219,13 +220,13 @@
             StateHasChanged();
             
             CurrentPage++;
-            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, 24);
+			var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
             Photos = pagedResult.Items;
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Fehler beim Laden der nächsten Seite: {ex.Message}", Severity.Error);
-            CurrentPage--; // Rollback
+            CurrentPage--;
         }
         finally
         {

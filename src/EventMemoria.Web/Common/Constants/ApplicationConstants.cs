@@ -1,11 +1,21 @@
+using ImageMagick;
+
 namespace EventMemoria.Web.Common.Constants;
 
 public static class ApplicationConstants
 {
     public static class FileUpload
     {
-        public const long MaxFileSizeInBytes = 50 * 1024 * 1024; // 50MB
+        public const long MaxFileSizeInBytes = 150 * 1024 * 1024; // 150MB
         public const int MaxFileCount = 50;
+
+        public static class Thumbnail
+        {
+            public const int ResizeWidth = 700;
+            public const int ResizeHeight = 700;
+            public const int Quality = 85;
+            public const MagickFormat Format = MagickFormat.Jpeg;
+        }
     }
 
     public static class ImageTags
@@ -27,22 +37,13 @@ public static class ApplicationConstants
         public const int MinPhotosPerRow = 2;
         public const int MaxPhotosPerRow = 12;
 
-        public static readonly Dictionary<int, int> PhotosPerRowHeights = new()
+        public static readonly List<PhotoGridConfiguration> Configuration = new List<PhotoGridConfiguration>
         {
-            { 2, 400 },
-            { 4, 300 },
-            { 6, 250 },
-            { 8, 200 },
-            { 12, 150 }
-        };
-
-        public static readonly Dictionary<int, string> PhotosPerRowWidths = new()
-        {
-            { 2, "calc(50% - 9px)" },
-            { 4, "calc(25% - 9px)" },
-            { 6, "calc(16.666% - 10px)" },
-            { 8, "calc(12.5% - 10.5px)" },
-            { 12, "calc(8.333% - 11px)" }
+            new (2, 400, "calc(50% - 9px)" ),
+            new (4, 300, "calc(25% - 9px)" ),
+            new (6, 250, "calc(16.666% - 10px)" ),
+            new (8, 200, "calc(12.5% - 10.5px)" ),
+            new (12, 150, "calc(8.333% - 11px)" )
         };
     }
 
@@ -51,10 +52,15 @@ public static class ApplicationConstants
         public const string GridContainerHeight = "70vh";
         public const int PhotoCardOffset = 60;
         public const int FileNameTruncateLength = 15;
+        public const string DateFormat = "dd.MM.yyyy HH:mm";
     }
 
     public static class UserPreferences
     {
         public const string StorageKey = "author_name";
+        public const int UserNameMinLength = 3;
     }
 }
+
+
+public record PhotoGridConfiguration(int Rows, int Height, string Width);

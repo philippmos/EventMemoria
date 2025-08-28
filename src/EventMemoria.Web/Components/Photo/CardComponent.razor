@@ -1,3 +1,4 @@
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Models
 @using EventMemoria.Web.Services.Interfaces
 @using EventMemoria.Web.Services
@@ -33,16 +34,18 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public Photo Photo { get; set; } = default!;
-    [Parameter] public int PhotosPerRow { get; set; }
-    [Parameter] public bool IsPhotoLoaded { get; set; }
-    [Parameter] public EventCallback<Photo> OnPhotoClicked { get; set; }
-    [Parameter] public EventCallback<string> OnPhotoLoaded { get; set; }
+	[Parameter, EditorRequired] public Photo Photo { get; set; } = default!;
+	[Parameter] public int PhotosPerRow { get; set; }
+	[Parameter] public bool IsPhotoLoaded { get; set; }
+	[Parameter] public EventCallback<Photo> OnPhotoClicked { get; set; }
+	[Parameter] public EventCallback<string> OnPhotoLoaded { get; set; }
 
-    [Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
+	[Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
 
-    private int GetPhotoContainerHeight() 
-        => PhotoGridService.GetRowHeight(PhotosPerRow) - 60; // UI offset constant
+	private int GetPhotoContainerHeight()
+	{
+		return PhotoGridService.GetRowHeight(PhotosPerRow) - ApplicationConstants.Ui.PhotoCardOffset;
+	}
 
     private string GetPhotoOpacityStyle()
     {

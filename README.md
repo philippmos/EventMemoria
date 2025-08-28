@@ -1,6 +1,6 @@
 # EventMemoria - Fotoportal
 
-Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeitsfotos. Die Anwendung ermöglicht es Hochzeitsgästen, Fotos hochzuladen und gemeinsam eine Fotogalerie zu erstellen.
+Eine moderne Blazor WebApp für das Teilen und Verwalten von Hochzeitsfotos. Die Anwendung ermöglicht es Hochzeitsgästen, Fotos hochzuladen und gemeinsam eine Fotogalerie zu erstellen.
 
 ## Features
 
@@ -14,7 +14,7 @@ Eine moderne Blazor Server-Anwendung für das Teilen und Verwalten von Hochzeits
 ## Technologie-Stack
 
 - **.NET 9.0** - Moderne .NET-Plattform
-- **Blazor Server** - Server-seitige Blazor-Anwendung
+- **Blazor WebApp** - Blazor-Anwendung
 - **MudBlazor** - Material Design-Komponenten
 - **C#** - Programmiersprache
 - **HTML/CSS** - Frontend-Styling
