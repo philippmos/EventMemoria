@@ -1,0 +1,34 @@
+@use '../../base' as *;
+
+.photo-upload {
+  background: linear-gradient(135deg, $wedding-rose 0%, $wedding-rose 100%);
+  position: relative;
+  border-radius: $border-radius-md;
+
+  @include text-center;
+
+  &__icon {
+    color: $color-white;
+    font-size: 2rem;
+  }
+
+  &__text {
+    color: $color-white;
+    font-weight: $font-weight-medium;
+
+    @include text-center;
+  }
+
+  &__description {
+    color: $white-80;
+
+    @include text-center;
+  }
+
+  &__file-input {
+    @include absolute-full;
+    opacity: 0;
+    cursor: pointer;
+    z-index: $z-index-dropdown;
+  }
+}

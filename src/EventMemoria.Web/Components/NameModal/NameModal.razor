@@ -9,25 +9,24 @@
 {
     <MudDialog Visible="@ShowModal" Options="@DialogOptions">
         <DialogContent>
-            <div class="d-flex flex-column align-center" style="text-align: center;">
+            <div class="name-modal d-flex flex-column align-center">
                 
                          
                 <MudText Typo="Typo.h1"
                          GutterBottom="true"
-                         Style="color: #A86C6C; font-weight: 400;">
+                         Class="name-modal__title">
                     @CustomizationOptions.Value.NameModal.Title
                 </MudText>
 
 
                 <MudText Typo="Typo.h5" 
                          GutterBottom="true"
-                         Style="color: #A86C6C; font-weight: 600;">
+                         Class="name-modal__subtitle">
                     @CustomizationOptions.Value.NameModal.SubTitle
                 </MudText>
                 
                 <MudText Typo="Typo.body1" 
-                         Class="mb-4" 
-                         Style="color: #666; max-width: 400px;">
+                         Class="name-modal__description mb-4">
                     Damit Deine hochgeladenen Bilder richtig zugeordnet werden können, benötigen wir Deinen Namen als Foto-Author.
                 </MudText>
 
@@ -45,8 +44,7 @@
                 @if (!string.IsNullOrWhiteSpace(ValidationMessage))
                 {
                     <MudAlert Severity="Severity.Warning" 
-                              Class="mt-3" 
-                              Style="max-width: 350px;">
+                              Class="name-modal__alert mt-3">
                         @ValidationMessage
                     </MudAlert>
                 }

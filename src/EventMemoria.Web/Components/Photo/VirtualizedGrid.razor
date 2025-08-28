@@ -21,9 +21,9 @@
             <GridControlsComponent PhotosPerRow="@_photosPerRow"
                                         OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
             
-            <div style="height: @ApplicationConstants.Ui.GridContainerHeight; overflow-y: auto;">
+            <div class="photo-grid">
                 <MudVirtualize Items="@_photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="@ApplicationConstants.Pagination.VirtualizationOverscanCount">
-                    <div class="photo-row" style="display: flex; gap: 12px; padding: 6px; justify-content: flex-start; flex-wrap: nowrap;">
+                    <div class="photo-grid__row">
                         @foreach (var photo in row)
                         {
                             <CardComponent Photo="@photo"

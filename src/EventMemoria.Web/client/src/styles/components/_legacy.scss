@@ -1,0 +1,48 @@
+@use '../base' as *;
+
+.categories-container {
+  @include hide-scrollbar;
+}
+
+.upload-button {
+  @include wedding-button-gradient;
+}
+
+.wedding-chip-active {
+  background-color: $wedding-rose !important;
+  color: $color-white !important;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px $shadow-rose;
+}
+
+.wedding-chip-inactive {
+  background-color: $wedding-light-gray !important;
+  color: $wedding-gray !important;
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: $wedding-light-rose !important;
+    border-color: $wedding-rose;
+  }
+}
+
+.wedding-background {
+  background: linear-gradient(45deg, $color-white 0%, #{$wedding-light-rose} 100%);
+}
+
+.wedding-card {
+  @include wedding-card;
+}
+
+.wedding-filter-button {
+  color: $wedding-gray;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $wedding-rose;
+  }
+}
+
+.wedding-button-selected {
+  @include wedding-button-primary;
+}

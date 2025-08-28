@@ -1,0 +1,20 @@
+.photo-grid {
+    height: 70vh;
+    overflow-y: auto;
+
+    &__row {
+        display: flex;
+        gap: 12px;
+        padding: 6px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+    }
+
+    &__container {
+        transition: transform 0.2s ease-in-out;
+
+        &:hover {
+            transform: scale(1.02);
+        }
+    }
+}

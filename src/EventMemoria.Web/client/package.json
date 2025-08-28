@@ -1,0 +1,27 @@
+{
+  "name": "eventmemoria-client",
+  "version": "0.0.1",
+  "description": "Client package for EventMemoria",
+  "main": "index.js",
+  "scripts": {
+    "build:install": "npx --yes bun install",
+    "build:prod": "cross-env NODE_ENV=production bun ./bun-config/bun.config.build.ts",
+    "build:dev": "cross-env NODE_ENV=development ACTIVE_THEME=default bun ./bun-config/bun.config.build.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philippmos/eventmemoria.git"
+  },
+  "author": "philipp-mos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/philippmos/eventmemoria/issues"
+  },
+  "homepage": "https://github.com/philippmos/eventmemoria#readme",
+  "devDependencies": {
+    "@types/bun": "1.2.15",
+    "@types/node": "22.15.30",
+    "cross-env": "7.0.3",
+    "sass": "1.89.1"
+  }
+}

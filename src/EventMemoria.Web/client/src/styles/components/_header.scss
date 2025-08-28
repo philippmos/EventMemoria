@@ -1,0 +1,44 @@
+@use '../base' as *;
+
+.header {
+  background: $wedding-rose;
+  border-radius: 0;
+
+  @include text-center;
+
+  &__title {
+    color: $color-white;
+    font-weight: $font-weight-light;
+    letter-spacing: $letter-spacing-wide;
+
+    @include mobile-only {
+      font-size: 2rem;
+      letter-spacing: $letter-spacing-normal;
+    }
+  }
+
+  &__avatar {
+    width: $avatar-size-default;
+    height: $avatar-size-default;
+    border: 2px solid $white-20;
+
+    @include shadow-medium;
+  }
+
+  &__name {
+    color: $color-white;
+    font-weight: $font-weight-medium;
+  }
+
+  &__welcome-message {
+    color: $white-80;
+    max-width: 280px;
+    margin: 0 auto;
+    font-size: 0.9rem;
+
+    @include mobile-only {
+      font-size: 0.9rem;
+      padding: 0 $spacing-md;
+    }
+  }
+}

@@ -1,0 +1,64 @@
+@use '../base' as *;
+
+.name-modal {
+  @include text-center;
+
+  &__title {
+    @include text-wedding-title;
+  }
+
+  &__subtitle {
+    @include text-wedding-subtitle;
+  }
+
+  &__description {
+    @include text-muted;
+    max-width: 400px;
+  }
+
+  &__input {
+    max-width: 350px;
+  }
+
+  &__alert {
+    max-width: 350px;
+  }
+}
+
+.mud-dialog-content {
+  padding: $spacing-xl !important;
+}
+
+.name-modal-header {
+  color: $color-purple;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-md;
+
+  @include text-center;
+}
+
+.name-modal-description {
+  @include text-muted;
+  @include text-center;
+  max-width: 400px;
+  margin: 0 auto $spacing-xl auto;
+  line-height: 1.5;
+}
+
+.name-modal-input {
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.name-modal-button {
+  max-width: 350px;
+  margin: $spacing-md auto 0 auto;
+
+  @include wedding-button-base;
+}
+
+.name-modal-icon {
+  color: $wedding-rose;
+  font-size: 4rem;
+  margin-bottom: $spacing-md;
+}
