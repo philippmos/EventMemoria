@@ -59,6 +59,7 @@
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
 	[Inject] private ILogger<QrCode> Logger { get; set; } = default!;
 	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 	private MarkupString? _svgCode = null;
 	private string? _svgContent = null;
@@ -70,11 +71,9 @@
 		var qrCodeDate = qrCodeGenerator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.Q);
 
 		var qrCode = new SvgQRCode(qrCodeDate);
-		
 
-		var svgCode = qrCode.GetGraphic(20, darkColorHex: "#a86c6c", lightColorHex: "#ffffff", sizingMode: SvgQRCode.SizingMode.ViewBoxAttribute);
-		_svgContent = svgCode;
-		_svgCode = new MarkupString(svgCode);
+		_svgContent = qrCode.GetGraphic(20, darkColorHex: "#a86c6c", lightColorHex: "#ffffff", sizingMode: SvgQRCode.SizingMode.ViewBoxAttribute);
+		_svgCode = new MarkupString(_svgContent);
 
 		Logger.LogInformation("QR Code generated for URL: {Url}", targetUrl);
 
@@ -93,14 +92,30 @@
 		var base64 = Convert.ToBase64String(bytes);
 		var dataUrl = $"data:image/svg+xml;base64,{base64}";
 
-		await JSRuntime.InvokeVoidAsync("downloadFile", dataUrl, fileName);
+		try
+		{
+			await JSRuntime.InvokeVoidAsync("downloadFile", dataUrl, fileName);
+			Snackbar.Add("Datei wurde erstellt.", Severity.Success);
+		}
+		catch (Exception)
+		{
+			Snackbar.Add("Datei-Download konnte nicht erstellt werden", Severity.Warning);
+		}
 	}
 
 	private async Task CopyUrl()
 	{
 		var targetUrl = CustomizationOptions.Value.QrCodeTargetUrl;
-		await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", targetUrl);
-		
-		Logger.LogInformation("URL copied to clipboard: {Url}", targetUrl);
+		try
+		{
+			await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", targetUrl);
+			Snackbar.Add("Url wurde in die Zwischenablage kopiert.", Severity.Success);
+			Logger.LogInformation("URL copied to clipboard: {Url}", targetUrl);
+		}
+		catch(Exception)
+		{
+			Snackbar.Add("Url konnte nicht in die Zwischenablage kopiert werden.", Severity.Warning);
+			Logger.LogWarning("URL could not be copied to clipboard: {Url}", targetUrl);
+		}
 	}
 }
