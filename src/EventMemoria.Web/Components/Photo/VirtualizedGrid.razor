@@ -22,7 +22,11 @@
                                         OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
             
             <div class="photo-grid">
-                <MudVirtualize Items="@_photoRows" Context="row" ItemSize="@GetRowHeight()" OverscanCount="@ApplicationConstants.Pagination.VirtualizationOverscanCount">
+                <MudVirtualize
+						Items="@_photoRows"
+						Context="row"
+						ItemSize="@GetRowHeight()"
+						OverscanCount="@ApplicationConstants.Pagination.VirtualizationOverscanCount">
                     <div class="photo-grid__row">
                         @foreach (var photo in row)
                         {

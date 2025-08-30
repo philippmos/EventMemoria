@@ -6,6 +6,13 @@
     <MudPaper Class="d-flex flex-column justify-center align-center pa-4 mt-3 mb-1 ml-4 mr-3" 
               Style="background: linear-gradient(135deg, #A86C6C 0%, #A86C6C 100%); position: relative; border-radius: 8px;">
         
+        <InputFile
+                   multiple 
+                   accept="image/*" 
+                   OnChange="@HandleMultiFileUploadAsync"
+                   disabled="@(_isUploading || string.IsNullOrWhiteSpace(_userName))"
+                   style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
+
         @if (string.IsNullOrWhiteSpace(_userName))
         {
             <MudIcon Icon="@Icons.Material.Outlined.LockPerson" Style="color: #ffffff;" />
@@ -22,13 +29,6 @@
         }
         else
         {
-            <InputFile
-                       multiple 
-                       accept="image/*" 
-                       OnChange="@HandleMultiFileUploadAsync"
-                       disabled="@_isUploading"
-                       style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
-
             <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
             <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
                 Hochladen
@@ -91,6 +91,7 @@
 	{
 		_isUploading = true;
 		_uploadProgress = "Vorbereitung...";
+		StateHasChanged();
 
 		var uploadResults = new List<UploadResult>();
 
@@ -98,15 +99,26 @@
 		{
 			var file = files[i];
 			_uploadProgress = $"Verarbeite Datei {i + 1} von {files.Count}...";
+			StateHasChanged();
 
 			var result = await _uploadService.ProcessFileAsync(file, _userName);
 			uploadResults.Add(result);
+
+			Snackbar.Add($"Foto {file.Name} erfolgreich hochgeladen", Severity.Success);
+
+			if (OnPhotosUploaded.HasDelegate)
+			{
+				await OnPhotosUploaded.InvokeAsync();
+			}
+
+			StateHasChanged();
 		}
 
 		await HandleUploadResults(uploadResults);
 
 		_isUploading = false;
 		_uploadProgress = string.Empty;
+		StateHasChanged();
 	}
 
 	private async Task HandleUploadResults(IReadOnlyList<UploadResult> results)

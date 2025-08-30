@@ -6,8 +6,8 @@ public static class ApplicationConstants
 {
     public static class FileUpload
     {
-        public const long MaxFileSizeInBytes = 150 * 1024 * 1024; // 150MB
-        public const int MaxFileCount = 50;
+        public const long MaxFileSizeInBytes = 100 * 1024 * 1024; // 100MB
+        public const int MaxFileCount = 200;
 
         public static class Thumbnail
         {
@@ -28,7 +28,7 @@ public static class ApplicationConstants
     public static class Pagination
     {
         public const int DefaultPageSize = 24;
-        public const int MaxPageSize = 100;
+        public const int MaxPageSize = 500;
         public const int VirtualizationOverscanCount = 3;
     }
 
@@ -37,14 +37,14 @@ public static class ApplicationConstants
         public const int MinPhotosPerRow = 2;
         public const int MaxPhotosPerRow = 12;
 
-        public static readonly List<PhotoGridConfiguration> Configuration = new List<PhotoGridConfiguration>
-        {
+        public static readonly List<PhotoGridConfiguration> Configuration =
+        [
             new (2, 400, "calc(50% - 9px)" ),
             new (4, 300, "calc(25% - 9px)" ),
             new (6, 250, "calc(16.666% - 10px)" ),
             new (8, 200, "calc(12.5% - 10.5px)" ),
             new (12, 150, "calc(8.333% - 11px)" )
-        };
+        ];
     }
 
     public static class Ui
@@ -61,6 +61,5 @@ public static class ApplicationConstants
         public const int UserNameMinLength = 3;
     }
 }
-
 
 public record PhotoGridConfiguration(int Rows, int Height, string Width);
