@@ -37,3 +37,18 @@ jobs:
 
     - name: Build application
       run: dotnet build src/EventMemoria.Web/EventMemoria.Web.csproj --configuration Release --no-restore
+
+    - name: Login to Docker Hub
+      if: github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src/EventMemoria.Web
+        file: ./src/EventMemoria.Web/Dockerfile
+        push: ${{ github.ref == 'refs/heads/main' }}
+        tags: ${{ vars.DOCKER_HUB_REPO_NAME }}:${{ github.run_id }}

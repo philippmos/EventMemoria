@@ -6,5 +6,5 @@ namespace EventMemoria.Web.Services.Interfaces;
 public interface IFileValidationService
 {
     ValidationResult ValidateFile(IBrowserFile file);
-    ValidationResult ValidateFiles(IEnumerable<IBrowserFile> files);
+    ValidationResult ValidateMaxFileCount(IEnumerable<IBrowserFile> files);
 }

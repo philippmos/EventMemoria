@@ -5,9 +5,9 @@
 @using MudBlazor
 @using EventMemoria.Web.Components.Photo
 
-@if (ShowModal)
+@if (_showModal)
 {
-    <MudDialog Visible="@ShowModal" Options="@DialogOptions">
+    <MudDialog Visible="@_showModal" Options="@_dialogOptions">
         <DialogContent>
             <div class="name-modal d-flex flex-column align-center">
                 
@@ -30,7 +30,7 @@
                     Damit Deine hochgeladenen Bilder richtig zugeordnet werden können, benötigen wir Deinen Namen als Foto-Author.
                 </MudText>
 
-                <MudTextField @bind-Value="UserName"
+                <MudTextField @bind-Value="_userName"
                               Label="Dein Name"
                               Variant="Variant.Outlined"
                               Margin="Margin.Normal"
@@ -41,11 +41,11 @@
                               Adornment="Adornment.Start"
                               AdornmentIcon="Icons.Material.Filled.Person" />
 
-                @if (!string.IsNullOrWhiteSpace(ValidationMessage))
+                @if (!string.IsNullOrWhiteSpace(_validationMessage))
                 {
                     <MudAlert Severity="Severity.Warning" 
                               Class="name-modal__alert mt-3">
-                        @ValidationMessage
+                        @_validationMessage
                     </MudAlert>
                 }
             </div>
@@ -67,23 +67,19 @@
 
 @code {
 	[CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-
 	[Parameter] public EventCallback OnNameSaved { get; set; }
 
 	[Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
-
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
-
 	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
-
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 
-	private string UserName { get; set; } = string.Empty;
-	private string ValidationMessage { get; set; } = string.Empty;
-	private bool ShowModal { get; set; } = false;
+	private string _userName { get; set; } = string.Empty;
+	private string _validationMessage { get; set; } = string.Empty;
+	private bool _showModal { get; set; } = false;
 
-	private DialogOptions DialogOptions => new()
+	private DialogOptions _dialogOptions => new()
     {
         CloseOnEscapeKey = false,
         CloseButton = false,
@@ -107,7 +103,7 @@
 
 		if (string.IsNullOrWhiteSpace(userName))
 		{
-			ShowModal = true;
+			_showModal = true;
 			await InvokeAsync(StateHasChanged);
 		}
 	}
@@ -116,13 +112,13 @@
 	{
 		if (!IsInputValid())
 		{
-			ValidationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
+			_validationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
 			return;
 		}
 
 		try
 		{
-			var savedUserName = await UserPreferencesService.SetUserNameAsync(UserName.Trim());
+			var savedUserName = await UserPreferencesService.SetUserNameAsync(_userName.Trim());
 			if (!string.IsNullOrWhiteSpace(savedUserName))
 			{
 				Snackbar.Add($"Super, {savedUserName}! Du kannst jetzt Deine Bilder hochladen.", Severity.Success);
@@ -133,7 +129,7 @@
 			}
 
 
-            ShowModal = false;
+            _showModal = false;
             StateHasChanged();
             
             if (OnNameSaved.HasDelegate)
@@ -145,19 +141,19 @@
         }
         catch (Exception)
         {
-            ValidationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
+            _validationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
 			Snackbar.Add($"Dein Name konnte nicht gespeichert werden.", Severity.Warning);
         }
     }
 
     private bool IsInputValid()
     {
-        if (string.IsNullOrWhiteSpace(UserName))
+        if (string.IsNullOrWhiteSpace(_userName))
         {
             return false;
         }
 
-        if (UserName.Trim().Length < ApplicationConstants.UserPreferences.UserNameMinLength)
+        if (_userName.Trim().Length < ApplicationConstants.UserPreferences.UserNameMinLength)
         {
             return false;
         }

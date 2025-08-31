@@ -1,4 +1,16 @@
-# Build Stage
+# Frontend Build Stage
+FROM node:22-alpine AS frontend-build
+WORKDIR /src
+
+RUN npm install -g bun
+
+COPY client/package.json client/bun.lock ./client/
+RUN cd client && bun install
+
+COPY client/ ./client/
+RUN cd client && npm run build:prod
+
+# .NET Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
@@ -6,6 +18,8 @@ COPY *.csproj ./
 RUN dotnet restore
 
 COPY . ./
+
+COPY --from=frontend-build /src/wwwroot/ ./wwwroot/
 
 RUN dotnet build -c Release -o /app/build
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false

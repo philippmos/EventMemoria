@@ -4,15 +4,12 @@
 @using MudBlazor
 @using MudBlazor.Services
 @using EventMemoria.Web.Services
-@inject IJSRuntime JSRuntime
-@inject IStorageService StorageService
-@inject ISnackbar Snackbar
 
 <MudDialog>
     <TitleContent>
         <div class="d-flex align-center">
             <MudText Typo="Typo.h6">
-                Foto @(CurrentIndex + 1) von @Photos.Count
+                Foto @(_currentIndex + 1) von @Photos.Count
                 @if (TotalPages > 1)
                 {
                     <span class="text-muted ml-2">(Seite @CurrentPage von @TotalPages)</span>
@@ -23,12 +20,12 @@
             {
                 <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
                     <MudButton OnClick="LoadPreviousPage"
-                              Disabled="@(CurrentPage <= 1 || isLoadingPage)"
+                              Disabled="@(CurrentPage <= 1 || _isLoadingPage)"
                               StartIcon="Icons.Material.Filled.NavigateBefore">
                         Vorherige Seite
                     </MudButton>
                     <MudButton OnClick="LoadNextPage"
-                              Disabled="@(CurrentPage >= TotalPages || isLoadingPage)"
+                              Disabled="@(CurrentPage >= TotalPages || _isLoadingPage)"
                               EndIcon="Icons.Material.Filled.NavigateNext">
                         Nächste Seite
                     </MudButton>
@@ -38,7 +35,7 @@
     </TitleContent>
     <DialogContent>
         <div class="photo-gallery d-flex flex-column align-center">
-            @if (isLoadingPage)
+            @if (_isLoadingPage)
             {
                 <div class="photo-gallery__loading-container">
                     <MudProgressCircular Size="Size.Large" Indeterminate="true" />
@@ -54,8 +51,8 @@
                                   Disabled="@(!CanNavigateLeft())"
                                   Class="photo-gallery__nav-button photo-gallery__nav-button--left" />
                     
-                    <MudImage Src="@CurrentPhoto.Url"
-                             Alt="@CurrentPhoto.Alt"
+                    <MudImage Src="@_currentPhoto.Url"
+                             Alt="@_currentPhoto.Alt"
                              Class="photo-gallery__main-image" />
                     
                     <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
@@ -69,16 +66,16 @@
                 <MudPaper Class="photo-gallery__info-panel pa-3 mt-3" Elevation="1">
                                             <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.body1">
-                            <strong>@CurrentPhoto.FileName</strong>
+                            <strong>@_currentPhoto.FileName</strong>
                         </MudText>
                         <MudText Typo="Typo.body2" Class="text-muted">
-                            @CurrentPhoto.FormattedFileSize
+                            @_currentPhoto.FormattedFileSize
                         </MudText>
                         <MudText Typo="Typo.body2" Class="text-muted">
-                            @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
+                            @_currentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
                         </MudText>
                         <MudText Typo="Typo.body2" Class="text-muted">
-                            <strong>Author:</strong> @CurrentPhoto.Author
+                            <strong>Author:</strong> @_currentPhoto.Author
                         </MudText>
                     </MudStack>
                 </MudPaper>
@@ -112,13 +109,17 @@
     [Parameter] public int InitialIndex { get; set; } = 0;
     [Parameter] public int CurrentPage { get; set; } = 1;
     [Parameter] public int TotalPages { get; set; } = 1;
+
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+	[Inject] private IStorageService StorageService { get; set; } = default!;
+	[Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private int _currentIndex { get; set; }
+    private bool _isLoadingPage = false;
     
-    private int CurrentIndex { get; set; }
-    private bool isLoadingPage = false;
-    
-    private Photo CurrentPhoto 
-        => Photos.Count > 0 && CurrentIndex < Photos.Count 
-            ? Photos[CurrentIndex] 
+    private Photo _currentPhoto 
+        => Photos.Count > 0 && _currentIndex < Photos.Count 
+            ? Photos[_currentIndex] 
             : new Photo 
             { 
                 Id = Guid.NewGuid().ToString(), 
@@ -130,21 +131,21 @@
 
     protected override void OnInitialized()
     {
-        CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
+        _currentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
     }
 
     private void NextPhoto()
     {
-        if (CurrentIndex < Photos.Count - 1)
+        if (_currentIndex < Photos.Count - 1)
         {
-            CurrentIndex++;
+            _currentIndex++;
         }
         else if (CurrentPage < TotalPages)
         {
             _ = Task.Run(async () =>
             {
                 await LoadNextPage();
-                CurrentIndex = 0;
+                _currentIndex = 0;
                 await InvokeAsync(StateHasChanged);
             });
         }
@@ -152,16 +153,16 @@
 
     private void PreviousPhoto()
     {
-        if (CurrentIndex > 0)
+        if (_currentIndex > 0)
         {
-            CurrentIndex--;
+            _currentIndex--;
         }
         else if (CurrentPage > 1)
         {
             _ = Task.Run(async () =>
             {
                 await LoadPreviousPage();
-                CurrentIndex = Math.Max(0, Photos.Count - 1);
+                _currentIndex = Math.Max(0, Photos.Count - 1);
                 await InvokeAsync(StateHasChanged);
             });
         }
@@ -171,27 +172,27 @@
     {
         if (index >= 0 && index < Photos.Count)
         {
-            CurrentIndex = index;
+            _currentIndex = index;
         }
     }
     
     private bool CanNavigateLeft()
     {
-        return CurrentIndex > 0 || CurrentPage > 1;
+        return _currentIndex > 0 || CurrentPage > 1;
     }
 
     private bool CanNavigateRight()
     {
-        return CurrentIndex < Photos.Count - 1 || CurrentPage < TotalPages;
+        return _currentIndex < Photos.Count - 1 || CurrentPage < TotalPages;
     }
 
     private async Task LoadPreviousPage()
     {
-        if (CurrentPage <= 1 || isLoadingPage) return;
+        if (CurrentPage <= 1 || _isLoadingPage) return;
 
         try
         {
-            isLoadingPage = true;
+            _isLoadingPage = true;
             StateHasChanged();
             
             CurrentPage--;
@@ -205,18 +206,18 @@
         }
         finally
         {
-            isLoadingPage = false;
+            _isLoadingPage = false;
             StateHasChanged();
         }
     }
 
     private async Task LoadNextPage()
     {
-        if (CurrentPage >= TotalPages || isLoadingPage) return;
+        if (CurrentPage >= TotalPages || _isLoadingPage) return;
 
         try
         {
-            isLoadingPage = true;
+            _isLoadingPage = true;
             StateHasChanged();
             
             CurrentPage++;
@@ -230,14 +231,14 @@
         }
         finally
         {
-            isLoadingPage = false;
+            _isLoadingPage = false;
             StateHasChanged();
         }
     }
 
     private string GetThumbnailClass(int index)
     {
-        return index == CurrentIndex 
+        return index == _currentIndex 
             ? "pa-1 mud-elevation-4 mud-primary" 
             : "pa-1 mud-elevation-1";
     }
