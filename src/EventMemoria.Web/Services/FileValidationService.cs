@@ -38,7 +38,9 @@ public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileV
 
     public ValidationResult ValidateMaxFileCount(IEnumerable<IBrowserFile> files)
     {
-        if (files.Count() > ApplicationConstants.FileUpload.MaxFileCount)
+        var fileList = files.ToList();
+
+        if (fileList.Count > ApplicationConstants.FileUpload.MaxFileCount)
         {
             return ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount} auf einmal).");
         }
