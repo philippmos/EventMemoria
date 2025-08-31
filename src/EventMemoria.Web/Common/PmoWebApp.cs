@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Settings;
 using EventMemoria.Web.Components;
 using MudBlazor.Services;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace EventMemoria.Web.Common;
 
@@ -20,6 +21,7 @@ public static class PmoWebApp
 
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddConfigurations(builder.Configuration);
+        builder.Services.AddDataProtection(builder.Configuration);
 
         builder.Services.AddBlazoredLocalStorage();
 
@@ -53,6 +55,21 @@ public static class PmoWebApp
     {
         services.Configure<PhotoOptions>(configuration.GetSection(nameof(PhotoOptions)));
         services.Configure<CustomizationOptions>(configuration.GetSection(nameof(CustomizationOptions)));
+
+        return services;
+    }
+
+    private static IServiceCollection AddDataProtection(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("AzureStorage");
+
+        var containerName = configuration.GetValue<string>("DataProtectionContainerName") ?? "dataprotectionkeys";
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
+
+        services.AddDataProtection()
+                .PersistKeysToAzureBlobStorage(connectionString, containerName, "keys.xml")
+                .SetApplicationName(typeof(PmoWebApp).Assembly.GetName().Name!);
 
         return services;
     }
