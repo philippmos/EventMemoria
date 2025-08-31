@@ -13,58 +13,68 @@
                    disabled="@(_isUploading || string.IsNullOrWhiteSpace(_userName))"
                    style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
 
-        @if (string.IsNullOrWhiteSpace(_userName))
-        {
-            <MudIcon Icon="@Icons.Material.Outlined.LockPerson" Style="color: #ffffff;" />
-            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center;">
-                Bitte gebe zuerst Deinen Namen ein
-            </MudText>
-        }
-        else if (_isUploading)
-        {
-            <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
-            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-                @_uploadProgress
-            </MudText>
-        }
-        else
-        {
-            <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
-            <MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
-                Hochladen
-            </MudText>
-            <MudText Typo="Typo.caption" Class="mt-1" Style="color: rgba(255,255,255,0.8); text-align: center;">
-                Mehrere Dateien unterstützt
-            </MudText>
-        }
+
+		@if (_hasRendered)
+		{
+			if (string.IsNullOrWhiteSpace(_userName))
+			{
+				<MudIcon Icon="@Icons.Material.Outlined.LockPerson" Style="color: #ffffff;" />
+				<MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center;">
+					Bitte gebe zuerst Deinen Namen ein
+				</MudText>
+			}
+			else if (_isUploading)
+			{
+				<MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
+				<MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
+					@_uploadProgress
+				</MudText>
+			}
+			else
+			{
+				<MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Large" Style="color: white; font-size: 2rem;" />
+				<MudText Typo="Typo.body2" Class="mt-2" Style="color: white; text-align: center; font-weight: 500;">
+					Hochladen
+				</MudText>
+				<MudText Typo="Typo.caption" Class="mt-1" Style="color: rgba(255,255,255,0.8); text-align: center;">
+					Mehrere Dateien unterstützt
+				</MudText>
+			}
+		}
+		else
+		{
+			<MudProgressCircular Color="Color.Dark" Size="Size.Medium" Indeterminate="true" />
+		}
+
     </MudPaper>
 </MudItem>
 
 @code {
 	[Parameter] public EventCallback OnPhotosUploaded { get; set; }
 
-	[Inject] private IUploadService _uploadService { get; set; } = default!;
+	[Inject] private IUploadService UploadService { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
-	[Inject] private IFileValidationService _fileValidationService { get; set; } = default!;
-	[Inject] private IUserPreferencesService _userPreferencesService { get; set; } = default!;
+	[Inject] private IFileValidationService FileValidationService { get; set; } = default!;
+	[Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
 
 	private bool _isUploading { get; set; } = false;
 	private string _uploadProgress = string.Empty;
-
 	private string? _userName { get; set; }
+	private bool _hasRendered = false;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
-			_userName = await _userPreferencesService.GetUserNameAsync();
+			_userName = await UserPreferencesService.GetUserNameAsync();
+			_hasRendered = true;
 			StateHasChanged();
 		}
 	}
 
 	public async Task RefreshUserName()
 	{
-		_userName = await _userPreferencesService.GetUserNameAsync();
+		_userName = await UserPreferencesService.GetUserNameAsync();
 		StateHasChanged();
 	}
 
@@ -75,12 +85,12 @@
 			return;
 		}
 
-		var files = eventArgs.GetMultipleFiles(ApplicationConstants.FileUpload.MaxFileCount).ToList();
-		var validationResult = _fileValidationService.ValidateFiles(files);
+		var files = eventArgs.GetMultipleFiles(ApplicationConstants.FileUpload.MaxFileCountNative).ToList();
+		var validationResult = FileValidationService.ValidateMaxFileCount(files);
 
 		if (!validationResult.IsValid)
 		{
-			Snackbar.Add(validationResult.ErrorMessage, Severity.Error);
+			Snackbar.Add(validationResult.ErrorMessage, Severity.Warning);
 			return;
 		}
 
@@ -101,7 +111,15 @@
 			_uploadProgress = $"Verarbeite Datei {i + 1} von {files.Count}...";
 			StateHasChanged();
 
-			var result = await _uploadService.ProcessFileAsync(file, _userName);
+			var validationResult = FileValidationService.ValidateFile(file);
+
+			if (!validationResult.IsValid)
+			{
+				Snackbar.Add(validationResult.ErrorMessage, Severity.Warning);
+				continue;
+			}
+
+			var result = await UploadService.ProcessFileAsync(file, _userName);
 			uploadResults.Add(result);
 
 			Snackbar.Add($"Foto {file.Name} erfolgreich hochgeladen", Severity.Success);
@@ -126,7 +144,7 @@
 		var successCount = results.Count(r => r.IsSuccess);
 		var failures = results.Where(r => !r.IsSuccess).ToList();
 
-		if (successCount > 0)
+		if (successCount > 1)
 		{
 			Snackbar.Add($"{successCount} Foto(s) erfolgreich hochgeladen", Severity.Success);
 
@@ -138,7 +156,7 @@
 
 		foreach (var failure in failures.Take(3))
 		{
-			Snackbar.Add($"Fehler bei '{failure.FileName}': {failure.ErrorMessage}", Severity.Error);
+			Snackbar.Add($"Fehler beim Upload von '{failure.FileName}'", Severity.Error);
 		}
 
 		if (failures.Count > 3)

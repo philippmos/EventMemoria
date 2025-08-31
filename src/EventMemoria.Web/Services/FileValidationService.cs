@@ -36,28 +36,13 @@ public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileV
         return ValidationResult.Success();
     }
 
-    public ValidationResult ValidateFiles(IEnumerable<IBrowserFile> files)
+    public ValidationResult ValidateMaxFileCount(IEnumerable<IBrowserFile> files)
     {
-        var fileList = files.ToList();
-
-        if (fileList.Count > ApplicationConstants.FileUpload.MaxFileCount)
+        if (files.Count() > ApplicationConstants.FileUpload.MaxFileCount)
         {
-            return ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount})");
+            return ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount} auf einmal).");
         }
 
-        var errors = new List<string>();
-
-        foreach (var file in fileList)
-        {
-            var result = ValidateFile(file);
-            if (!result.IsValid)
-            {
-                errors.Add(result.ErrorMessage);
-            }
-        }
-
-        return errors.Any()
-            ? ValidationResult.Failure(string.Join(", ", errors))
-            : ValidationResult.Success();
+        return ValidationResult.Success();
     }
 }

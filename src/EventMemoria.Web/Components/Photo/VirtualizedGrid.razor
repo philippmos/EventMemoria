@@ -4,8 +4,6 @@
 @using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
 @using EventMemoria.Web.Services
-@inject IDialogService DialogService
-@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
     @if (_isLoading)
@@ -54,9 +52,11 @@
 @code {
 	[Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
 
-	[Inject] private IOptions<PhotoOptions> _photoOptions { get; set; } = default!;
+	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = default!;
 	[Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
-	[Inject] private IStorageService _storageService { get; set; } = default!;
+	[Inject] private IStorageService StorageService { get; set; } = default!;
+	[Inject] private IDialogService DialogService { get; set; } = default!;
+	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 	private int _photosPerRow { get; set; }
 	private List<Photo> _allPhotos = new();
@@ -66,7 +66,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		_photosPerRow = _photoOptions.Value.DefaultPhotosPerRow;
+		_photosPerRow = PhotoOptions.Value.DefaultPhotosPerRow;
 		await LoadAllPhotosAsync();
 	}
 
@@ -77,7 +77,7 @@
 			_isLoading = true;
 			StateHasChanged();
 
-			var result = await _storageService.GetPhotosPagedAsync(1, ApplicationConstants.Pagination.MaxPageSize);
+			var result = await StorageService.GetPhotosPagedAsync(1, ApplicationConstants.Pagination.MaxPageSize);
 			_allPhotos = result.Items;
 
 			CreatePhotoRows();

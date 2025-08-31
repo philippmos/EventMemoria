@@ -15,18 +15,18 @@
 <div class="birds-container">
     <HeaderComponent />
 
-    <UploadComponent @ref="uploadComponent" 
+    <UploadComponent @ref="_uploadComponent" 
                           OnPhotosUploaded="@RefreshVirtualizedGrid" />
-    <VirtualizedGrid @ref="virtualizedGrid"
+    <VirtualizedGrid @ref="_virtualizedGrid"
                           OnPhotosLoaded="@OnPhotosLoaded" />
 </div>
 
 @code {
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
 
-    private VirtualizedGrid? virtualizedGrid;
-    private UploadComponent? uploadComponent;
-    private int totalPhotosCount = 0;
+    private VirtualizedGrid? _virtualizedGrid;
+    private UploadComponent? _uploadComponent;
+    private int _totalPhotosCount = 0;
 
     private async Task RefreshPhotos()
     {
@@ -35,24 +35,24 @@
 
     private async Task RefreshVirtualizedGrid()
     {
-        if (virtualizedGrid != null)
+        if (_virtualizedGrid != null)
         {
-            await virtualizedGrid.RefreshPhotos();
+            await _virtualizedGrid.RefreshPhotos();
         }
         await InvokeAsync(StateHasChanged);
     }
 
     private void OnPhotosLoaded(List<Photo> photos)
     {
-        totalPhotosCount = photos.Count;
+        _totalPhotosCount = photos.Count;
         StateHasChanged();
     }
 
     private async Task OnNameSaved()
     {
-        if (uploadComponent != null)
+        if (_uploadComponent != null)
         {
-            await uploadComponent.RefreshUserName();
+            await _uploadComponent.RefreshUserName();
         }
     }
 }

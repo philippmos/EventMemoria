@@ -7,7 +7,8 @@ public static class ApplicationConstants
     public static class FileUpload
     {
         public const long MaxFileSizeInBytes = 100 * 1024 * 1024; // 100MB
-        public const int MaxFileCount = 200;
+        public const int MaxFileCountNative = 1000;
+        public const int MaxFileCount = 100;
 
         public static class Thumbnail
         {
