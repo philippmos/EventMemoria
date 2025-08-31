@@ -9,7 +9,6 @@
     <TitleContent>
         <div class="d-flex align-center">
             <MudText Typo="Typo.h6">
-                Foto @(_currentIndex + 1) von @Photos.Count
                 @if (TotalPages > 1)
                 {
                     <span class="text-muted ml-2">(Seite @CurrentPage von @TotalPages)</span>
@@ -64,20 +63,22 @@
                 </div>
                 
                 <MudPaper Class="photo-gallery__info-panel pa-3 mt-3" Elevation="1">
-                                            <MudStack Row Spacing="4" AlignItems="AlignItems.Center">
-                        <MudText Typo="Typo.body1">
+                    <div class="photo-gallery__info-content">
+                        <MudText Typo="Typo.body1" Class="photo-gallery__filename">
                             <strong>@_currentPhoto.FileName</strong>
                         </MudText>
-                        <MudText Typo="Typo.body2" Class="text-muted">
-                            @_currentPhoto.FormattedFileSize
-                        </MudText>
-                        <MudText Typo="Typo.body2" Class="text-muted">
-                            @_currentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
-                        </MudText>
-                        <MudText Typo="Typo.body2" Class="text-muted">
-                            <strong>Author:</strong> @_currentPhoto.Author
-                        </MudText>
-                    </MudStack>
+                        <div class="photo-gallery__meta-info">
+                            <MudText Typo="Typo.body2" Class="text-muted">
+                                @_currentPhoto.FormattedFileSize
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">
+                                @_currentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">
+                                <strong>Author:</strong> @_currentPhoto.Author
+                            </MudText>
+                        </div>
+                    </div>
                 </MudPaper>
                 
                 @if (Photos.Count > 1)
@@ -139,6 +140,7 @@
         if (_currentIndex < Photos.Count - 1)
         {
             _currentIndex++;
+            InvokeAsync(StateHasChanged);
         }
         else if (CurrentPage < TotalPages)
         {
@@ -156,6 +158,7 @@
         if (_currentIndex > 0)
         {
             _currentIndex--;
+            InvokeAsync(StateHasChanged);
         }
         else if (CurrentPage > 1)
         {
@@ -173,6 +176,7 @@
         if (index >= 0 && index < Photos.Count)
         {
             _currentIndex = index;
+            InvokeAsync(StateHasChanged);
         }
     }
     
@@ -188,7 +192,10 @@
 
     private async Task LoadPreviousPage()
     {
-        if (CurrentPage <= 1 || _isLoadingPage) return;
+        if (CurrentPage <= 1 || _isLoadingPage)
+        {
+            return;
+        }
 
         try
         {
@@ -198,11 +205,13 @@
             CurrentPage--;
             var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
             Photos = pagedResult.Items;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Fehler beim Laden der vorherigen Seite: {ex.Message}", Severity.Error);
             CurrentPage++;
+            StateHasChanged();
         }
         finally
         {
@@ -213,7 +222,10 @@
 
     private async Task LoadNextPage()
     {
-        if (CurrentPage >= TotalPages || _isLoadingPage) return;
+        if (CurrentPage >= TotalPages || _isLoadingPage)
+        {
+            return;
+        }
 
         try
         {
@@ -223,11 +235,13 @@
             CurrentPage++;
 			var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
             Photos = pagedResult.Items;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Fehler beim Laden der nächsten Seite: {ex.Message}", Severity.Error);
             CurrentPage--;
+            StateHasChanged();
         }
         finally
         {

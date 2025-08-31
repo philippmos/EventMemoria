@@ -1,25 +1,31 @@
 @using EventMemoria.Web.Common.Constants
 
 <MudPaper Class="pa-3" Elevation="1">
-    <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <MudStack Row Spacing="6" AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.body2" Class="text-muted">
-                Fotos pro Zeile:
-            </MudText>
-            <MudStack Row Spacing="1">
+    <div class="d-flex flex-column">
+        <MudText Typo="Typo.body2" Class="text-muted mb-3 text-center">
+            Fotos pro Zeile:
+        </MudText>
+        
+        <div class="grid-controls-container">
+            <MudChipSet T="int" 
+                        SelectedValue="@PhotosPerRow"
+                        SelectedValueChanged="@((int value) => OnPhotosPerRowChanged.InvokeAsync(value))"
+                        mandatory="true"
+                        Class="grid-controls-chipset">
                 @foreach (var option in GetPhotosPerRowOptions())
                 {
-                    <MudButton OnClick="@(() => OnPhotosPerRowChanged.InvokeAsync(option))"
-                               Size="Size.Small"
-                               Variant="@(PhotosPerRow == option ? Variant.Filled : Variant.Outlined)"
-                               Color="Color.Default"
-                               Class="@(PhotosPerRow == option ? "wedding-button-selected" : "")">
+                    <MudChip T="int" 
+                             Value="option"
+                             Color="Color.Dark"
+                             Variant="Variant.Text"
+                             Size="Size.Medium"
+                             Class="grid-controls-chip">
                         @option
-                    </MudButton>
+                    </MudChip>
                 }
-            </MudStack>
-        </MudStack>
-    </MudStack>
+            </MudChipSet>
+        </div>
+    </div>
 </MudPaper>
 
 @code {

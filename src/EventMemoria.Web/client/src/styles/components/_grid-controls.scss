@@ -1,0 +1,88 @@
+@use '../base' as *;
+
+.grid-controls-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; 
+  @include hide-scrollbar;
+  
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 16px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  &::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.8), transparent);
+  }
+  
+  &::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.8), transparent);
+  }
+}
+
+.grid-controls-chipset {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 0 20px;
+  min-width: max-content;
+  
+  @include mobile-only {
+    justify-content: flex-start;
+    padding: 0 4px;
+  }
+}
+
+.grid-controls-chip {
+  flex-shrink: 0;
+  min-width: 48px;
+  white-space: nowrap;
+  transition: all $transition-fast;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($wedding-rose, 0.2);
+  }
+  
+  &.mud-chip-selected {
+    background-color: $wedding-rose !important;
+    color: $color-white !important;
+    font-weight: $font-weight-semibold;
+    box-shadow: 0 2px 8px rgba($wedding-rose, 0.3);
+  }
+  
+  &.mud-chip-clickable:not(.mud-chip-selected) {
+    background-color: $wedding-light-rose !important;
+    color: $wedding-light-rose !important;
+    border: 1px solid transparent;
+    
+    &:hover {
+      background-color: $wedding-light-rose !important;
+      border-color: rgba($wedding-rose, 0.3);
+      color: $wedding-rose !important;
+    }
+  }
+}
+
+@include tablet-up {
+  .grid-controls-container {
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+  
+  .grid-controls-chipset {
+    justify-content: start;
+    flex-wrap: wrap;
+  }
+}
