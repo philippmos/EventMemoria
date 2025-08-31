@@ -37,3 +37,11 @@ jobs:
 
     - name: Build application
       run: dotnet build src/EventMemoria.Web/EventMemoria.Web.csproj --configuration Release --no-restore
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src/EventMemoria.Web
+        file: ./src/EventMemoria.Web/Dockerfile
+        push: false
+        tags: eventmemoria:latest
