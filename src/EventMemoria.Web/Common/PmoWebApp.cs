@@ -1,8 +1,8 @@
 using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Settings;
 using EventMemoria.Web.Components;
-using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
+using MudBlazor.Services;
 
 namespace EventMemoria.Web.Common;
 

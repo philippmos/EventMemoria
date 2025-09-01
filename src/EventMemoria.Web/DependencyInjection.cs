@@ -13,6 +13,7 @@ public static class DependencyInjection
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
 
         services.AddSingleton(x => new BlobServiceClient(connectionString));
+
         services.AddScoped<IStorageService, BlobStorageService>();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IPhotoGridService, PhotoGridService>();

@@ -15,4 +15,5 @@ public record NameModalOptions
 {
     public string Title { get; init; } = string.Empty;
     public string SubTitle { get; init; } = string.Empty;
+    public string Message { get; init; } = string.Empty;
 }

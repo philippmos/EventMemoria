@@ -18,11 +18,11 @@ public class UploadService(
             using var fileStream = file.OpenReadStream(ApplicationConstants.FileUpload.MaxFileSizeInBytes);
             using var memoryStream = new MemoryStream();
             await fileStream.CopyToAsync(memoryStream);
-            
+
             var fileBytes = memoryStream.ToArray();
-            
+
             await CreateAndUploadThumbnailAsync(fileBytes, file.Name, file.ContentType, userName);
-            
+
             using var uploadStream = new MemoryStream(fileBytes);
             await storageService.UploadFullSizeAsync(uploadStream, file.Name, file.ContentType, userName);
 
