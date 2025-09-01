@@ -94,7 +94,7 @@
 
 		try
 		{
-			await JSRuntime.InvokeVoidAsync("downloadFile", dataUrl, fileName);
+			await JSRuntime.InvokeVoidAsync("FileDownloader.downloadFile", dataUrl, fileName);
 			Snackbar.Add("Datei wurde erstellt.", Severity.Success);
 		}
 		catch (Exception)
