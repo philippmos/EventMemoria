@@ -11,16 +11,4 @@ public class Photo
     public string? Alt { get; init; }
     public bool IsLoaded { get; set; } = true;
     public string Author { get; set; } = string.Empty;
-
-    public string FormattedFileSize => FormatFileSize(FileSize);
-
-    private static string FormatFileSize(long sizeInBytes)
-    {
-        return sizeInBytes switch
-        {
-            < 1024 => $"{sizeInBytes} B",
-            < 1024 * 1024 => $"{sizeInBytes / 1024:F1} KB",
-            _ => $"{sizeInBytes / (1024 * 1024):F1} MB"
-        };
-    }
 }

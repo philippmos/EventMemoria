@@ -1,4 +1,5 @@
 @using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Helpers
 @using EventMemoria.Web.Models
 @using EventMemoria.Web.Services.Interfaces
 @using MudBlazor
@@ -69,7 +70,7 @@
                         </MudText>
                         <div class="photo-gallery__meta-info">
                             <MudText Typo="Typo.body2" Class="text-muted">
-                                @_currentPhoto.FormattedFileSize
+                                @PhotoHelper.FormatFileSize(_currentPhoto.FileSize)
                             </MudText>
                             <MudText Typo="Typo.body2" Class="text-muted">
                                 @_currentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
