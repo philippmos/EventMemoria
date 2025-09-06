@@ -1,10 +1,9 @@
 @page "/"
+
 @using EventMemoria.Web.Common.Settings
-@using EventMemoria.Web.Models
 @using Microsoft.Extensions.Options
 @using EventMemoria.Web.Components.NameModal
 @using EventMemoria.Web.Components.Photo
-@using EventMemoria.Web.Components.Shared
 
 @rendermode InteractiveServer
 
@@ -15,36 +14,30 @@
 <div class="birds-container">
     <HeaderComponent />
 
-    <UploadComponent @ref="_uploadComponent" 
-                          OnPhotosUploaded="@RefreshVirtualizedGrid" />
+    <UploadComponent @ref="_uploadComponent"
+                          OnPhotosUploaded="@RefreshVirtualizedGridAsync" />
     <VirtualizedGrid @ref="_virtualizedGrid"
                           OnPhotosLoaded="@OnPhotosLoaded" />
 </div>
 
 @code {
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 
     private VirtualizedGrid? _virtualizedGrid;
     private UploadComponent? _uploadComponent;
-    private int _totalPhotosCount = 0;
 
-    private async Task RefreshPhotos()
-    {
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task RefreshVirtualizedGrid()
+    private async Task RefreshVirtualizedGridAsync()
     {
         if (_virtualizedGrid != null)
         {
             await _virtualizedGrid.RefreshPhotos();
         }
+
         await InvokeAsync(StateHasChanged);
     }
 
     private void OnPhotosLoaded(List<Photo> photos)
     {
-        _totalPhotosCount = photos.Count;
         StateHasChanged();
     }
 

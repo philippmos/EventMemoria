@@ -1,5 +1,4 @@
 @using EventMemoria.Web.Common.Settings
-@using Microsoft.AspNetCore.Components
 @using Microsoft.Extensions.Options
 
 <MudPaper Class="header pa-6" Elevation="0">
@@ -7,15 +6,15 @@
         <MudText Typo="Typo.h4" Class="header__title mb-4">
 			@CustomizationOptions.Value.Title
         </MudText>
-        
+
         <MudAvatar Size="Size.Large" Class="header__avatar mb-3">
             <MudImage Src="@CustomizationOptions.Value.AvatarPath" Alt="@CustomizationOptions.Value.Names" />
         </MudAvatar>
-        
+
         <MudText Typo="Typo.h5" Class="header__name mb-2">
 			@CustomizationOptions.Value.Names
         </MudText>
-        
+
         <MudText Typo="Typo.body2" Class="header__welcome-message mb-4">
 			@CustomizationOptions.Value.WelcomeMessage
         </MudText>
@@ -23,5 +22,5 @@
 </MudPaper>
 
 @code {
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 }

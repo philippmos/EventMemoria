@@ -6,20 +6,18 @@ namespace EventMemoria.Web;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("AzureStorage");
 
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
 
-        services.AddSingleton(x => new BlobServiceClient(connectionString));
+        services.AddSingleton(_ => new BlobServiceClient(connectionString));
 
         services.AddScoped<IStorageService, BlobStorageService>();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IPhotoGridService, PhotoGridService>();
         services.AddScoped<IFileValidationService, FileValidationService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
-
-        return services;
     }
 }

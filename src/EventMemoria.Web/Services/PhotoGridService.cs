@@ -1,4 +1,3 @@
-using System.Linq;
 using EventMemoria.Web.Common.Constants;
 using EventMemoria.Web.Models;
 using EventMemoria.Web.Services.Interfaces;
@@ -44,9 +43,10 @@ public class PhotoGridService : IPhotoGridService
     }
 
     public bool IsValidPhotosPerRow(int photosPerRow)
-        => photosPerRow >= ApplicationConstants.PhotoGrid.MinPhotosPerRow
-        && photosPerRow <= ApplicationConstants.PhotoGrid.MaxPhotosPerRow;
+        => photosPerRow
+            is >= ApplicationConstants.PhotoGrid.MinPhotosPerRow
+            and <= ApplicationConstants.PhotoGrid.MaxPhotosPerRow;
 
-    private PhotoGridConfiguration? GetConfiguration(int photosPerRow)
+    private static PhotoGridConfiguration? GetConfiguration(int photosPerRow)
         => ApplicationConstants.PhotoGrid.Configuration.FirstOrDefault(x => x.Rows == photosPerRow);
 }

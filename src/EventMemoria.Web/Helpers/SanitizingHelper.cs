@@ -2,8 +2,11 @@ using System.Text.RegularExpressions;
 
 namespace EventMemoria.Web.Helpers;
 
-public static class SanitizingHelper
+public static partial class SanitizingHelper
 {
+    [GeneratedRegex(@"[^a-zA-Z0-9\s\+\-\.\:=_]")]
+    private static partial Regex SanitizeRegEx();
+    
     public static string SanitizeValue(string value)
     {
         if (string.IsNullOrEmpty(value))
@@ -11,7 +14,7 @@ public static class SanitizingHelper
             return "Unknown";
         }
 
-        var sanitized = Regex.Replace(value, @"[^a-zA-Z0-9\s\+\-\.\:=_]", "_");
+        var sanitized = SanitizeRegEx().Replace(value, "_");
 
         sanitized = sanitized.Trim();
 
