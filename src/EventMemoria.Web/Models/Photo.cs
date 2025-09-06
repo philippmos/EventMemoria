@@ -7,8 +7,6 @@ public class Photo
     public required string Url { get; init; }
     public required DateTime UploadDate { get; init; }
     public required long FileSize { get; init; }
-    public string? Description { get; init; }
     public string? Alt { get; init; }
-    public bool IsLoaded { get; set; } = true;
     public string Author { get; set; } = string.Empty;
 }

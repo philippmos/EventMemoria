@@ -2,16 +2,14 @@
 @using EventMemoria.Web.Common.Settings
 @using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
-@using MudBlazor
-@using EventMemoria.Web.Components.Photo
 
-@if (_showModal)
+@if (ShowModal)
 {
-    <MudDialog Visible="@_showModal" Options="@_dialogOptions">
+    <MudDialog Visible="@ShowModal" Options="@DialogOptions">
         <DialogContent>
             <div class="name-modal d-flex flex-column align-center">
-                
-                         
+
+
                 <MudText Typo="Typo.h1"
                          GutterBottom="true"
                          Class="name-modal__title">
@@ -19,18 +17,18 @@
                 </MudText>
 
 
-                <MudText Typo="Typo.h5" 
+                <MudText Typo="Typo.h5"
                          GutterBottom="true"
                          Class="name-modal__subtitle">
                     @CustomizationOptions.Value.NameModal.SubTitle
                 </MudText>
-                
-                <MudText Typo="Typo.body1" 
+
+                <MudText Typo="Typo.body1"
                          Class="name-modal__description mb-4">
                     @CustomizationOptions.Value.NameModal.Message
                 </MudText>
 
-                <MudTextField @bind-Value="_userName"
+                <MudTextField @bind-Value="UserName"
                               Label="Dein Name"
                               Variant="Variant.Outlined"
                               Margin="Margin.Normal"
@@ -41,18 +39,18 @@
                               Adornment="Adornment.Start"
                               AdornmentIcon="Icons.Material.Filled.Person" />
 
-                @if (!string.IsNullOrWhiteSpace(_validationMessage))
+                @if (!string.IsNullOrWhiteSpace(ValidationMessage))
                 {
-                    <MudAlert Severity="Severity.Warning" 
+                    <MudAlert Severity="Severity.Warning"
                               Class="name-modal__alert mt-3">
-                        @_validationMessage
+                        @ValidationMessage
                     </MudAlert>
                 }
             </div>
         </DialogContent>
-        
+
         <DialogActions>
-            <MudButton OnClick="@(() => SaveAndClose())"
+            <MudButton OnClick="@(() => SaveAndCloseAsync())"
                        Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Large"
@@ -66,20 +64,20 @@
 }
 
 @code {
-	[CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 	[Parameter] public EventCallback OnNameSaved { get; set; }
 
-	[Inject] private IUserPreferencesService UserPreferencesService { get; set; } = default!;
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
-	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
-	[Inject] private ISnackbar Snackbar { get; set; } = default!;
+	[Inject] private IUserPreferencesService UserPreferencesService { get; set; } = null!;
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+	[Inject] private NavigationManager NavigationManager { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
 
 
-	private string _userName { get; set; } = string.Empty;
-	private string _validationMessage { get; set; } = string.Empty;
-	private bool _showModal { get; set; } = false;
+	private string UserName { get; set; } = string.Empty;
+	private string ValidationMessage { get; set; } = string.Empty;
+	private bool ShowModal { get; set; }
 
-	private DialogOptions _dialogOptions => new()
+	private static DialogOptions DialogOptions => new()
     {
         CloseOnEscapeKey = false,
         CloseButton = false,
@@ -92,33 +90,33 @@
 	{
 		if (firstRender)
 		{
-			await CheckAndShowModal();
+			await CheckAndShowModalAsync();
 		}
 		await base.OnAfterRenderAsync(firstRender);
 	}
 
-	private async Task CheckAndShowModal()
+	private async Task CheckAndShowModalAsync()
 	{
 		var userName = await UserPreferencesService.GetUserNameAsync();
 
 		if (string.IsNullOrWhiteSpace(userName))
 		{
-			_showModal = true;
+			ShowModal = true;
 			await InvokeAsync(StateHasChanged);
 		}
 	}
 
-	private async Task SaveAndClose()
+	private async Task SaveAndCloseAsync()
 	{
 		if (!IsInputValid())
 		{
-			_validationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
+			ValidationMessage = "Bitte gib einen Namen mit mindestens 3 Buchstaben ein.";
 			return;
 		}
 
 		try
 		{
-			var savedUserName = await UserPreferencesService.SetUserNameAsync(_userName.Trim());
+			var savedUserName = await UserPreferencesService.SetUserNameAsync(UserName.Trim());
 			if (!string.IsNullOrWhiteSpace(savedUserName))
 			{
 				Snackbar.Add($"Super, {savedUserName}! Du kannst jetzt Deine Bilder hochladen.", Severity.Success);
@@ -129,35 +127,30 @@
 			}
 
 
-            _showModal = false;
+            ShowModal = false;
             StateHasChanged();
-            
+
             if (OnNameSaved.HasDelegate)
             {
                 await OnNameSaved.InvokeAsync();
             }
-            
+
             NavigationManager.Refresh();
         }
         catch (Exception)
         {
-            _validationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
+            ValidationMessage = "Fehler beim Speichern. Bitte versuche es erneut.";
 			Snackbar.Add($"Dein Name konnte nicht gespeichert werden.", Severity.Warning);
         }
     }
 
     private bool IsInputValid()
     {
-        if (string.IsNullOrWhiteSpace(_userName))
+        if (string.IsNullOrWhiteSpace(UserName))
         {
             return false;
         }
 
-        if (_userName.Trim().Length < ApplicationConstants.UserPreferences.UserNameMinLength)
-        {
-            return false;
-        }
-
-        return true;
+        return UserName.Trim().Length >= ApplicationConstants.UserPreferences.UserNameMinLength;
     }
 }

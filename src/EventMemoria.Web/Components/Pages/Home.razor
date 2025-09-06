@@ -30,7 +30,7 @@
     {
         if (_virtualizedGrid != null)
         {
-            await _virtualizedGrid.RefreshPhotos();
+            await _virtualizedGrid.RefreshPhotosAsync();
         }
 
         await InvokeAsync(StateHasChanged);
@@ -45,7 +45,7 @@
     {
         if (_uploadComponent != null)
         {
-            await _uploadComponent.RefreshUserName();
+            await _uploadComponent.RefreshUserNameAsync();
         }
     }
 }

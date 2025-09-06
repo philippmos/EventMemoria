@@ -31,7 +31,7 @@ public class UploadService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing file {FileName}", file.Name);
-            return UploadResult.Failure(file.Name, ex.Message);
+            return UploadResult.Failure(file.Name);
         }
     }
 
