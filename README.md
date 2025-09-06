@@ -1,61 +1,118 @@
 # EventMemoria - Fotoportal
 
-Eine moderne Blazor WebApp für das Teilen und Verwalten von Hochzeitsfotos. Die Anwendung ermöglicht es Hochzeitsgästen, Fotos hochzuladen und gemeinsam eine Fotogalerie zu erstellen.
+Eine moderne Blazor WebApp für das Teilen und Verwalten von Eventphotos (Hochzeiten etc.).
 
 ## Features
 
 🎨 **Modern Design** - Material Design mit MudBlazor-Komponenten
-📸 **Foto-Upload** - Mehrere Fotos gleichzeitig hochladen
-🖼️ **Fotogalerie** - Responsive Grid-Layout für Fotos
-🔍 **Foto-Viewer** - Vollbild-Dialog zum Betrachten von Fotos
+📸 **Foto-Upload** - Mehrere Fotos gleichzeitig hochladen (bis zu 100 Dateien)
+🖼️ **Fotogalerie** - Responsive Grid-Layout mit konfigurierbarer Spaltenanzahl (2-12 Spalten)
+🔍 **Foto-Viewer** - Vollbild-Dialog zum Betrachten von Fotos mit Navigation
 📱 **Responsive** - Funktioniert auf Desktop, Tablet und Smartphone
 ⚡ **Echtzeitaktualisierung** - Server-seitige Blazor-Interaktivität
+🏷️ **Benutzer-Tagging** - Automatische Zuordnung von Fotos zu Autoren
+🖼️ **Thumbnail-Generierung** - Automatische Erstellung optimierter Vorschaubilder
+☁️ **Azure Storage Integration** - Skalierbare Cloud-Speicherung
+🔒 **Data Protection** - Sichere Datenschlüssel-Verwaltung
+📊 **QR-Code-Generator** - Einfaches Teilen der Galerie-URL
+🎛️ **Anpassbare Konfiguration** - Themes, Titel und Einstellungen konfigurierbar
 
 ## Technologie-Stack
 
+### Backend
+
 - **.NET 9.0** - Moderne .NET-Plattform
-- **Blazor WebApp** - Blazor-Anwendung
-- **MudBlazor** - Material Design-Komponenten
-- **C#** - Programmiersprache
-- **HTML/CSS** - Frontend-Styling
+- **Blazor WebApp** - Server-seitige Blazor-Anwendung mit interaktiven Komponenten
+- **MudBlazor** - Material Design-Komponenten für Blazor
+- **Azure Storage Blobs** - Cloud-basierte Dateispeicherung
+- **ImageMagick.NET** - Bildverarbeitung und Thumbnail-Generierung
+- **QRCoder** - QR-Code-Generierung
+- **Blazored.LocalStorage** - Client-seitige Datenpersistierung
+
+### Frontend
+
+- **Bun** - Moderne JavaScript-Laufzeit und Package Manager
+- **TypeScript** - Typisierte JavaScript-Entwicklung
+- **Sass/SCSS** - Erweiterte CSS-Syntax
+- **Responsive Design** - Mobile-first Ansatz
+
+### Infrastructure
+
+- **Docker** - Containerisierung mit Multi-Stage Builds
+- **Docker Compose** - Lokale Entwicklungsumgebung
+- **Azure Blob Storage** - Produktive Cloud-Speicherung
+- **Health Checks** - Anwendungsüberwachung
 
 ## Installation und Setup
 
 ### Voraussetzungen
 
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) oder höher
+- [Bun](https://bun.sh/) für Frontend-Asset-Building
 - Ein Code-Editor (Visual Studio, Visual Studio Code, Rider)
+- **Optional für Produktion**: Docker und Docker Compose
+- **Optional für Cloud-Deployment**: Azure Storage Account
 
 ### Schritt-für-Schritt Installation
+
+#### Option 1: Lokale Development-Installation
 
 1. **Repository klonen**
 
    ```bash
    git clone https://github.com/philippmos/EventMemoria.git
-   cd EventMemoria
+   cd EventMemoria/src
    ```
 
-2. **Abhängigkeiten installieren**
+2. **Frontend-Assets bauen**
+
+   ```bash
+   cd EventMemoria.Web/client
+   npm run build:install
+   npm run build:dev
+   ```
+
+3. **Backend-Abhängigkeiten installieren**
 
    ```bash
    dotnet restore
    ```
 
-3. **Anwendung kompilieren**
+4. **Secrets als UserSecrets aufsetzen**
+Struktur aus secrets.example.json
+
+5. **Anwendung starten**
 
    ```bash
-   dotnet build
+   dotnet run --project EventMemoria.Web
    ```
 
-4. **Anwendung starten**
+#### Option 2: Docker-Installation
+
+1. **Repository klonen**
 
    ```bash
-   dotnet run
+   git clone https://github.com/philippmos/EventMemoria.git
+   cd EventMemoria/src
    ```
 
-5. **Browser öffnen**
-   
-   Die Anwendung ist unter `https://localhost:7087` oder `http://localhost:5111` erreichbar.
+2. **Environment-Variablen konfigurieren**
+
+   ```bash
+   cp .env.example .env
+   # Bearbeite .env-Datei mit deinen Azure Storage-Einstellungen
+   ```
+
+3. **Mit Docker Compose starten**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Anwendung ist erreichbar unter**
+
+   - **Development**: `https://localhost:7087` oder `http://localhost:5111`
+   - **Docker**: `http://localhost:8080`
 
 ## Verwendung
 
@@ -78,14 +135,57 @@ Eine moderne Blazor WebApp für das Teilen und Verwalten von Hochzeitsfotos. Die
 - GIF (.gif)
 - WebP (.webp)
 - BMP (.bmp)
+- DNG (.dng) - Raw-Format
 
-**Maximale Dateigröße:** 150 MB pro Datei
+**Maximale Dateigröße:** 100 MB pro Datei  
+**Maximale Anzahl gleichzeitiger Uploads:** 100 Dateien
 
 ## Konfiguration
 
-### Styling anpassen
+### Anwendungseinstellungen
 
-Individuelle Styles können in `wwwroot/css/styles.css` hinzugefügt werden.
+Die Anwendung kann über die `appsettings.json` konfiguriert werden:
+
+#### PhotoOptions
+
+```json
+{
+  "PhotoOptions": {
+    "StorageContainer": {
+      "FullSize": "fullsize-photos",
+      "Thumbnails": "thumbnails"
+    },
+    "AllowedFileTypes": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".dng"],
+    "DefaultPhotosPerRow": 2
+  }
+}
+```
+
+#### CustomizationOptions
+
+```json
+{
+  "CustomizationOptions": {
+    "PageTitle": "Meine Hochzeit - Fotoportal",
+    "Title": "Hochzeitsgalerie",
+    "AvatarPath": "https://example.com/avatar.jpg",
+    "Names": "Max & Maria",
+    "WelcomeMessage": "Willkommen zu unserer Hochzeit!",
+    "QrCodeTargetUrl": "https://photos.example.com"
+  }
+}
+```
+
+### Azure Storage-Konfiguration
+
+Für die Produktion benötigst du einen Azure Storage Account:
+
+1. **Azure Storage Account erstellen**
+2. **Connection String kopieren**
+3. **In der Konfiguration setzen**:
+   - Als User Secret: `dotnet user-secrets set "ConnectionStrings:AzureStorage" "deine-connection-string"`
+   - Als Umgebungsvariable: `AZURE_STORAGE_CONNECTION_STRING=deine-connection-string`
+   - In Docker: über `.env`-Datei
 
 ## Development
 
@@ -102,5 +202,16 @@ Die Anwendung nutzt [MudBlazor](https://mudblazor.com/) für die UI-Komponenten.
 Für die Entwicklung unterstützt die Anwendung Hot Reload:
 
 ```bash
-dotnet watch run
+dotnet watch run --project EventMemoria.Web
 ```
+
+## Architektur
+
+Die Anwendung folgt einer sauberen Architektur mit klarer Trennung:
+
+- **Components**: Razor-Komponenten und UI-Logic
+- **Services**: Business Logic und externe Integrationen
+- **Models**: Datenstrukturen und DTOs
+- **Helpers**: Utility-Funktionen und Extensions
+- **Common**: Konstanten, Settings und gemeinsame Klassen
+
