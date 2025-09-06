@@ -51,15 +51,13 @@ public static class PmoWebApp
         return app;
     }
 
-    private static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
+    private static void AddConfigurations(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<PhotoOptions>(configuration.GetSection(nameof(PhotoOptions)));
         services.Configure<CustomizationOptions>(configuration.GetSection(nameof(CustomizationOptions)));
-
-        return services;
     }
 
-    private static IServiceCollection AddDataProtection(this IServiceCollection services, IConfiguration configuration)
+    private static void AddDataProtection(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("AzureStorage");
 
@@ -70,7 +68,5 @@ public static class PmoWebApp
         services.AddDataProtection()
                 .PersistKeysToAzureBlobStorage(connectionString, containerName, "keys.xml")
                 .SetApplicationName(typeof(PmoWebApp).Assembly.GetName().Name!);
-
-        return services;
     }
 }

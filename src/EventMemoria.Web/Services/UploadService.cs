@@ -15,7 +15,7 @@ public class UploadService(
     {
         try
         {
-            using var fileStream = file.OpenReadStream(ApplicationConstants.FileUpload.MaxFileSizeInBytes);
+            await using var fileStream = file.OpenReadStream(ApplicationConstants.FileUpload.MaxFileSizeInBytes);
             using var memoryStream = new MemoryStream();
             await fileStream.CopyToAsync(memoryStream);
 
@@ -31,7 +31,7 @@ public class UploadService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing file {FileName}", file.Name);
-            return UploadResult.Failure(file.Name, ex.Message);
+            return UploadResult.Failure(file.Name);
         }
     }
 
@@ -46,7 +46,7 @@ public class UploadService(
             image.Quality = ApplicationConstants.FileUpload.Thumbnail.Quality;
 
             using var thumbnailStream = new MemoryStream();
-            image.Write(thumbnailStream, ApplicationConstants.FileUpload.Thumbnail.Format);
+            await image.WriteAsync(thumbnailStream, ApplicationConstants.FileUpload.Thumbnail.Format);
             var thumbnailBytes = thumbnailStream.ToArray();
 
             using var uploadStream = new MemoryStream(thumbnailBytes);

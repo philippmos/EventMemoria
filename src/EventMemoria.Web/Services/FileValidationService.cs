@@ -9,7 +9,7 @@ namespace EventMemoria.Web.Services;
 
 public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileValidationService
 {
-    public ValidationResult ValidateFile(IBrowserFile file)
+    public ValidationResult ValidateFile(IBrowserFile? file)
     {
         if (file == null)
         {
@@ -28,23 +28,17 @@ public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileV
             return ValidationResult.Failure($"Dateityp '{extension}' wird nicht unterstützt");
         }
 
-        if (!file.ContentType.StartsWith("image/"))
-        {
-            return ValidationResult.Failure($"Datei '{file.Name}' ist kein gültiges Bild");
-        }
-
-        return ValidationResult.Success();
+        return !file.ContentType.StartsWith("image/")
+            ? ValidationResult.Failure($"Datei '{file.Name}' ist kein gültiges Bild")
+            : ValidationResult.Success();
     }
 
     public ValidationResult ValidateMaxFileCount(IEnumerable<IBrowserFile> files)
     {
         var fileList = files.ToList();
 
-        if (fileList.Count > ApplicationConstants.FileUpload.MaxFileCount)
-        {
-            return ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount} auf einmal).");
-        }
-
-        return ValidationResult.Success();
+        return fileList.Count > ApplicationConstants.FileUpload.MaxFileCount
+            ? ValidationResult.Failure($"Zu viele Dateien (max. {ApplicationConstants.FileUpload.MaxFileCount} auf einmal).")
+            : ValidationResult.Success();
     }
 }

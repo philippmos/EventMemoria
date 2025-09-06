@@ -2,7 +2,7 @@ namespace EventMemoria.Web.Common.Settings;
 
 public record PhotoOptions
 {
-    public StorageContainer StorageContainer { get; init; } = default!;
+    public StorageContainer StorageContainer { get; init; } = null!;
     public IEnumerable<string> AllowedFileTypes { get; init; } = [];
     public int DefaultPhotosPerRow { get; init; }
 }
