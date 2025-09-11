@@ -1,23 +1,21 @@
 @using EventMemoria.Web.Common.Constants
-@using EventMemoria.Web.Models
 @using EventMemoria.Web.Services.Interfaces
-@using EventMemoria.Web.Services
 
 <div class="photo-grid__container" style="@PhotoGridService.GetPhotoContainerStyle(PhotosPerRow)">
     <MudCard Class="photo-card">
         <MudCardContent Class="photo-card__content pa-1">
-            <div class="photo-card__image-container" 
+            <div class="photo-card__image-container"
                  style="height: @(GetPhotoContainerHeight())px;"
                  @onclick="@(() => OnPhotoClicked.InvokeAsync(Photo))">
-                
+
                 @if (!IsPhotoLoaded)
                 {
                     <div class="photo-card__placeholder">
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" />
                     </div>
                 }
-                
-                <MudImage 
+
+                <MudImage
                     Src="@Photo.Url"
                     Alt="@(Photo.Alt ?? "Foto")"
                     ObjectFit="ObjectFit.Cover"
@@ -25,7 +23,7 @@
                     Style="@GetPhotoOpacityStyle()"
                     @onload="@OnPhotoLoadAsync" />
             </div>
-            
+
             <MudText Typo="Typo.caption" Class="photo-card__filename mt-1 text-truncate">
                 @PhotoGridService.GetShortFileName(Photo.FileName)
             </MudText>
@@ -34,23 +32,19 @@
 </div>
 
 @code {
-	[Parameter, EditorRequired] public Photo Photo { get; set; } = default!;
+	[Parameter, EditorRequired] public Photo Photo { get; set; } = null!;
 	[Parameter] public int PhotosPerRow { get; set; }
 	[Parameter] public bool IsPhotoLoaded { get; set; }
 	[Parameter] public EventCallback<Photo> OnPhotoClicked { get; set; }
 	[Parameter] public EventCallback<string> OnPhotoLoaded { get; set; }
 
-	[Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
+	[Inject] private IPhotoGridService PhotoGridService { get; set; } = null!;
 
 	private int GetPhotoContainerHeight()
-	{
-		return PhotoGridService.GetRowHeight(PhotosPerRow) - ApplicationConstants.Ui.PhotoCardOffset;
-	}
+        => PhotoGridService.GetRowHeight(PhotosPerRow) - ApplicationConstants.Ui.PhotoCardOffset;
 
     private string GetPhotoOpacityStyle()
-    {
-        return IsPhotoLoaded ? "opacity: 1;" : "opacity: 0;";
-    }
+        => IsPhotoLoaded ? "opacity: 1;" : "opacity: 0;";
 
     private async Task OnPhotoLoadAsync()
     {

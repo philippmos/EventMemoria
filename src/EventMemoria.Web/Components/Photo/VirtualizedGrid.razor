@@ -1,10 +1,8 @@
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
-@using EventMemoria.Web.Models
 @using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
-@using EventMemoria.Web.Services
-@using Microsoft.JSInterop
+
 @implements IAsyncDisposable
 
 <MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
@@ -18,9 +16,9 @@
     else if (_allPhotos.Any())
     {
         <MudStack Spacing="2" Class="pa-2">
-            <GridControlsComponent PhotosPerRow="@_photosPerRow"
+            <GridControlsComponent PhotosPerRow="@PhotosPerRow"
                                         OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
-            
+
             <div class="photo-grid">
                 <MudVirtualize
 						Items="@_photoRows"
@@ -31,14 +29,14 @@
                         @foreach (var photo in row)
                         {
                             <CardComponent Photo="@photo"
-                                                PhotosPerRow="@_photosPerRow"
+                                                PhotosPerRow="@PhotosPerRow"
                                                 IsPhotoLoaded="@_loadedPhotos.Contains(photo.Id)"
                                                 OnPhotoClicked="@OnPhotoClickedAsync"
                                                 OnPhotoLoaded="@OnPhotoLoadedAsync" />
                         }
                     </div>
                 </MudVirtualize>
-                
+
                 @if (_currentPage < _totalPages)
                 {
                     <div class="photo-grid__load-trigger" @ref="_loadTriggerElement">
@@ -51,8 +49,8 @@
                         }
                         else
                         {
-                            <MudButton Variant="Variant.Text" 
-                                     Color="Color.Primary" 
+                            <MudButton Variant="Variant.Text"
+                                     Color="Color.Primary"
                                      OnClick="@LoadNextPageIfAvailableAsync"
                                      Class="ma-2">
                                 Mehr Fotos laden (@(_totalPages - _currentPage) Seiten übrig)
@@ -76,29 +74,29 @@
 @code {
 	[Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
 
-	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = default!;
-	[Inject] private IPhotoGridService PhotoGridService { get; set; } = default!;
-	[Inject] private IStorageService StorageService { get; set; } = default!;
-	[Inject] private IDialogService DialogService { get; set; } = default!;
-	[Inject] private ISnackbar Snackbar { get; set; } = default!;
-	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-	[Inject] private ILogger<VirtualizedGrid> Logger {get; set;} = default!;
+	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+	[Inject] private IPhotoGridService PhotoGridService { get; set; } = null!;
+	[Inject] private IStorageService StorageService { get; set; } = null!;
+	[Inject] private IDialogService DialogService { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
+	[Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+	[Inject] private ILogger<VirtualizedGrid> Logger {get; set;} = null!;
 
-	private int _photosPerRow { get; set; }
-	private List<Photo> _allPhotos = new();
-	private List<List<Photo>> _photoRows = new();
-	private HashSet<string> _loadedPhotos = new();
+	private int PhotosPerRow { get; set; }
+	private List<Photo> _allPhotos = [];
+	private List<List<Photo>> _photoRows = [];
+	private readonly HashSet<string> _loadedPhotos = [];
 	private bool _isLoading = true;
-	private bool _isLoadingMore = false;
+    private bool _isLoadingMore;
 	private int _currentPage = 1;
-	private int _totalPages = 0;
-	private int _pageSize = ApplicationConstants.Pagination.DefaultPageSize;
+    private int _totalPages;
+	private readonly int _pageSize = ApplicationConstants.Pagination.DefaultPageSize;
 	private ElementReference _loadTriggerElement;
 	private DotNetObjectReference<VirtualizedGrid>? _dotNetObjectRef;
 
 	protected override void OnInitialized()
 	{
-		_photosPerRow = PhotoOptions.Value.DefaultPhotosPerRow;
+		PhotosPerRow = PhotoOptions.Value.DefaultPhotosPerRow;
 		_dotNetObjectRef = DotNetObjectReference.Create(this);
 	}
 
@@ -108,7 +106,7 @@
 		{
 			await LoadPhotosPageAsync(1, true);
 		}
-		else if (_currentPage < _totalPages 
+		else if (_currentPage < _totalPages
 			&& _loadTriggerElement.Context != null)
 		{
 			await ObserveLoadTriggerAsync();
@@ -119,7 +117,7 @@
 	{
 		try
 		{
-			await JSRuntime.InvokeVoidAsync("IntersectionObserverManager.observe", _loadTriggerElement, _dotNetObjectRef);
+			await JsRuntime.InvokeVoidAsync("IntersectionObserverManager.observe", _loadTriggerElement, _dotNetObjectRef);
 		}
 		catch (Exception ex)
 		{
@@ -148,7 +146,7 @@
 			StateHasChanged();
 
 			var result = await StorageService.GetPhotosPagedAsync(page, _pageSize);
-			
+
 			if (isInitialLoad)
 			{
 				_allPhotos = result.Items;
@@ -193,29 +191,28 @@
 
 	private void CreatePhotoRows()
 	{
-		_photoRows = PhotoGridService.CreatePhotoRows(_allPhotos, _photosPerRow);
+		_photoRows = PhotoGridService.CreatePhotoRows(_allPhotos, PhotosPerRow);
 	}
 
 	private async Task SetPhotosPerRowAsync(int count)
 	{
-		if (!PhotoGridService.IsValidPhotosPerRow(count) || _photosPerRow == count)
+		if (!PhotoGridService.IsValidPhotosPerRow(count) || PhotosPerRow == count)
 		{
 			return;
 		}
 
-		_photosPerRow = count;
+		PhotosPerRow = count;
 		CreatePhotoRows();
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private int GetRowHeight() => PhotoGridService.GetRowHeight(_photosPerRow);
+	private int GetRowHeight() => PhotoGridService.GetRowHeight(PhotosPerRow);
 
 	private async Task OnPhotoLoadedAsync(string photoId)
 	{
-		if (!_loadedPhotos.Contains(photoId))
+		if (_loadedPhotos.Add(photoId))
 		{
-			_loadedPhotos.Add(photoId);
-			await InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
 		}
 	}
 
@@ -261,7 +258,7 @@
         await DialogService.ShowAsync<GalleryDialog>("Fotogalerie", parameters, options);
     }
 
-    public async Task RefreshPhotos()
+    public async Task RefreshPhotosAsync()
     {
         _loadedPhotos.Clear();
         _currentPage = 1;
@@ -272,10 +269,10 @@
     public async ValueTask DisposeAsync()
     {
         _dotNetObjectRef?.Dispose();
-        
+
         try
         {
-            await JSRuntime.InvokeVoidAsync("IntersectionObserverManager.dispose");
+            await JsRuntime.InvokeVoidAsync("IntersectionObserverManager.dispose");
         }
         catch (Exception)
         {

@@ -8,7 +8,7 @@ public record CustomizationOptions
     public string Names { get; init; } = string.Empty;
     public string WelcomeMessage { get; init; } = string.Empty;
     public string QrCodeTargetUrl { get; init; } = string.Empty;
-    public NameModalOptions NameModal { get; init; } = new();
+    public NameModalOptions NameModal { get; init; } = null!;
 }
 
 public record NameModalOptions

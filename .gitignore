@@ -402,3 +402,5 @@ FodyWeavers.xsd
 
 **/wwwroot/*
 .env
+
+.idea

@@ -24,28 +24,28 @@
 			<MudText Typo="Typo.h4" Class="qr-code-title">
 				QR Code
 			</MudText>
-			
+
 			<MudText Typo="Typo.body1" Class="qr-code-description">
 				Scanne diesen QR Code, um zur Event-Galerie zu gelangen und Deine Fotos hochzuladen.
 			</MudText>
-			
+
 			<div class="qr-code-wrapper">
 				@_svgCode
 			</div>
-			
+
 			<div class="download-section">
 				<MudButton Variant="Variant.Filled"
 						   Class="qr-download-button"
 						   StartIcon="@Icons.Material.Filled.Download"
-						   OnClick="DownloadSvg"
+						   OnClick="DownloadSvgAsync"
 						   Size="Size.Large">
 					QR Code herunterladen
 				</MudButton>
-				
+
 				<MudButton Variant="Variant.Outlined"
 						   Class="qr-copy-button"
 						   StartIcon="@Icons.Material.Filled.ContentCopy"
-						   OnClick="CopyUrl"
+						   OnClick="CopyUrlAsync"
 						   Size="Size.Large"
 						   Style="margin-top: 0.5rem;">
 					URL kopieren
@@ -56,13 +56,13 @@
 </div>
 
 @code {
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = default!;
-	[Inject] private ILogger<QrCode> Logger { get; set; } = default!;
-	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-	[Inject] private ISnackbar Snackbar { get; set; } = default!;
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+	[Inject] private ILogger<QrCode> Logger { get; set; } = null!;
+	[Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
 
-	private MarkupString? _svgCode = null;
-	private string? _svgContent = null;
+	private MarkupString? _svgCode;
+	private string? _svgContent;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -80,21 +80,21 @@
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private async Task DownloadSvg()
+	private async Task DownloadSvgAsync()
 	{
 		if (_svgContent is null)
 		{
 			return;
 		}
 
-		var fileName = "qr-code.svg";
+		const string fileName = "qr-code.svg";
 		var bytes = System.Text.Encoding.UTF8.GetBytes(_svgContent);
 		var base64 = Convert.ToBase64String(bytes);
 		var dataUrl = $"data:image/svg+xml;base64,{base64}";
 
 		try
 		{
-			await JSRuntime.InvokeVoidAsync("FileDownloader.downloadFile", dataUrl, fileName);
+			await JsRuntime.InvokeVoidAsync("FileDownloader.downloadFile", dataUrl, fileName);
 			Snackbar.Add("Datei wurde erstellt.", Severity.Success);
 		}
 		catch (Exception)
@@ -103,12 +103,12 @@
 		}
 	}
 
-	private async Task CopyUrl()
+	private async Task CopyUrlAsync()
 	{
 		var targetUrl = CustomizationOptions.Value.QrCodeTargetUrl;
 		try
 		{
-			await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", targetUrl);
+			await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", targetUrl);
 			Snackbar.Add("Url wurde in die Zwischenablage kopiert.", Severity.Success);
 			Logger.LogInformation("URL copied to clipboard: {Url}", targetUrl);
 		}

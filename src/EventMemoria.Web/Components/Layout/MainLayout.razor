@@ -18,13 +18,13 @@
 </div>
 
 @code {
-    private MudTheme? _theme = null;
+    private MudTheme? _theme;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        _theme = new()
+        _theme = new MudTheme
         {
             PaletteLight = _lightPalette,
             LayoutProperties = new LayoutProperties()
@@ -38,7 +38,7 @@
         AppbarBackground = "rgba(255,255,255,0.8)",
         DrawerBackground = "#ffffff",
         GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
+        GrayLighter = "#f9f9f9"
     };
 }
 
