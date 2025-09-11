@@ -1,13 +1,11 @@
 @page "/"
 
-@using EventMemoria.Web.Common.Settings
-@using Microsoft.Extensions.Options
 @using EventMemoria.Web.Components.NameModal
 @using EventMemoria.Web.Components.Photo
 
 @rendermode InteractiveServer
 
-<PageTitle>@CustomizationOptions.Value.PageTitle</PageTitle>
+<CustomPageTitle Value="Galerie" />
 
 <NameModal OnNameSaved="@OnNameSaved" />
 
@@ -21,7 +19,6 @@
 </div>
 
 @code {
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 
     private VirtualizedGrid? _virtualizedGrid;
     private UploadComponent? _uploadComponent;
