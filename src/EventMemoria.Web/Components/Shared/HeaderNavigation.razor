@@ -22,7 +22,8 @@
 
 	private IEnumerable<NavigationElement> NavigationElements => new List<NavigationElement>
 	{
-		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary)
+		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary),
+		new NavigationElement("Download", "/download", Icons.Material.Filled.Download)
 	};
 
 	private bool IsCurrentPage(string page)

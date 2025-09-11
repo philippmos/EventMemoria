@@ -12,6 +12,8 @@ public static class PmoWebApp
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddHttpClient();
+
         builder.Services.AddMudServices();
 
         builder.Services.AddHealthChecks();

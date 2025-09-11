@@ -1,0 +1,266 @@
+@page "/download"
+
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+@using System.Text.Json
+@using System.Text
+
+@rendermode InteractiveServer
+
+<CustomPageTitle Value="Download" />
+
+<div class="birds-container">
+	<HeaderComponent />
+	
+	<div class="qr-code-container">
+		<MudStack Spacing="4" AlignItems="AlignItems.Center">
+
+			<MudStack AlignItems="AlignItems.Center" Spacing="2">
+				<MudIcon Icon="@Icons.Material.Filled.Download" Class="name-modal-icon" />
+				<MudText Typo="Typo.h4" Class="qr-code-title" Style="color: #a86c6c;">
+					Bilder Download anfordern
+				</MudText>
+				<MudText Typo="Typo.body1" Class="qr-code-description">
+					Erhalte alle Event-Bilder direkt auf dein Smartphone per SMS
+				</MudText>
+			</MudStack>
+
+
+			<MudStack Spacing="3" Style="width: 100%; max-width: 400px;">
+				<MudText Typo="Typo.h6" Align="Align.Center" Style="color: #a86c6c; font-weight: 600;">
+					Bildqualität wählen
+				</MudText>
+
+				<MudStack Spacing="2">
+					<MudPaper Class="pa-3" Elevation="2" Style="@GetRadioCardStyle("full")" @onclick="@(() => SelectImageSize("full"))">
+						<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+							<MudIcon Icon="@Icons.Material.Filled.HighQuality" Color="@GetIconColor("full")" />
+							<MudStack Spacing="1" Style="flex: 1;">
+								<MudText Typo="Typo.subtitle2" Style="font-weight: 600;">Volle Größe</MudText>
+								<MudText Typo="Typo.caption" Class="mud-text-secondary">
+									Originalqualität
+								</MudText>
+							</MudStack>
+							@if (selectedImageSize == "full")
+							{
+								<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+							}
+							else
+							{
+								<MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Class="mud-text-secondary" />
+							}
+						</MudStack>
+					</MudPaper>
+
+					<MudPaper Class="pa-3" Elevation="2" Style="@GetRadioCardStyle("compressed")" @onclick="@(() => SelectImageSize("compressed"))">
+						<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+							<MudIcon Icon="@Icons.Material.Filled.Compress" Color="@GetIconColor("compressed")" />
+							<MudStack Spacing="1" Style="flex: 1;">
+								<MudText Typo="Typo.subtitle2" Style="font-weight: 600;">
+									Komprimiert <MudChip T="string" Size="Size.Small" Color="Color.Success" Text="Empfohlen" Style="margin-left: 8px;" />
+								</MudText>
+								<MudText Typo="Typo.caption" Class="mud-text-secondary">
+									Optimiert für schnellen Download
+								</MudText>
+							</MudStack>
+							@if (selectedImageSize == "compressed")
+							{
+								<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+							}
+							else
+							{
+								<MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Class="mud-text-secondary" />
+							}
+						</MudStack>
+					</MudPaper>
+				</MudStack>
+			</MudStack>
+
+
+			<MudAlert Severity="Severity.Info" Class="mt-2" Style="max-width: 400px; border-radius: 8px;">
+				<MudText Typo="Typo.body2">
+					<strong>SMS-Benachrichtigung:</strong> Du erhältst einen Download-Link per SMS, sobald das Archiv erstellt wurde. Das Erstellen kann je nach Datenmenge etwas Zeit in Anspruch nehmen.
+				</MudText>
+			</MudAlert>
+
+
+			<MudForm @ref="form" @bind-IsValid="@isFormValid" Style="width: 100%; max-width: 400px;">
+				<MudStack Spacing="3">
+					<MudTextField @bind-Value="mobileNumber"
+								  Label="Handynummer"
+								  Placeholder="+49 123 456789"
+								  Variant="Variant.Outlined"
+								  Required="true"
+								  RequiredError="Handynummer ist erforderlich"
+								  Validation="@(new Func<string, IEnumerable<string>>(ValidateMobileNumber))"
+								  Disabled="@isLoading"
+								  Adornment="Adornment.Start"
+								  AdornmentIcon="@Icons.Material.Filled.Phone"
+								  Style="background: white; border-radius: 8px;" />
+
+					<MudButton Variant="Variant.Filled"
+							   Color="Color.Primary"
+							   Size="Size.Large"
+							   OnClick="RequestDownload"
+							   Disabled="@(!isFormValid || isLoading)"
+							   StartIcon="@Icons.Material.Filled.Download"
+							   Class="qr-download-button"
+							   FullWidth="true">
+						@if (isLoading)
+						{
+							<MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+							<MudText Class="ms-2">Wird verarbeitet...</MudText>
+						}
+						else
+						{
+							<MudText>Download anfordern</MudText>
+						}
+					</MudButton>
+				</MudStack>
+			</MudForm>
+
+			@if (!string.IsNullOrEmpty(statusMessage))
+			{
+				<MudAlert Severity="@statusSeverity" 
+						  Class="mt-2" 
+						  Style="max-width: 400px; border-radius: 8px;"
+						  CloseIcon="@Icons.Material.Filled.Close"
+						  CloseIconClicked="() => statusMessage = string.Empty">
+					@statusMessage
+				</MudAlert>
+			}
+		</MudStack>
+	</div>
+</div>
+
+@code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+	[Inject] private IHttpClientFactory HttpClientClientFactory { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+	private MudForm form = null!;
+	private bool isFormValid;
+	private bool isLoading;
+	private string mobileNumber = string.Empty;
+	private string selectedImageSize = "compressed";
+	private string statusMessage = string.Empty;
+	private Severity statusSeverity = Severity.Info;
+
+	private IEnumerable<string> ValidateMobileNumber(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			yield return "Handynummer ist erforderlich";
+		}
+		else
+		{
+			var cleanNumber = value.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+
+			if (cleanNumber.Length < 10 || cleanNumber.Length > 15)
+			{
+				yield return "Handynummer muss zwischen 10 und 15 Zeichen lang sein";
+			}
+
+			if (!cleanNumber.StartsWith("+") && !cleanNumber.StartsWith("0"))
+			{
+				yield return "Handynummer muss mit + oder 0 beginnen";
+			}
+
+			if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[\+]?[0-9\s\-\(\)]+$"))
+			{
+				yield return "Handynummer enthält ungültige Zeichen";
+			}
+		}
+	}
+
+	private string GetRadioStyle(string option)
+	{
+		var baseStyle = "border-radius: 12px; border: 2px solid transparent; transition: all 0.3s ease;";
+		if (selectedImageSize == option)
+		{
+			return baseStyle + " border-color: var(--mud-palette-primary); background-color: var(--mud-palette-primary-lighten);";
+		}
+		return baseStyle;
+	}
+
+	private string GetRadioCardStyle(string option)
+	{
+		var baseStyle = "border-radius: 8px; transition: all 0.3s ease; cursor: pointer;";
+		if (selectedImageSize == option)
+		{
+			return baseStyle + " border: 2px solid #a86c6c; background-color: #f5f5f5;";
+		}
+		return baseStyle + " border: 1px solid #e0e0e0; background-color: white;";
+	}
+
+	private Color GetIconColor(string option)
+	{
+		return selectedImageSize == option ? Color.Primary : Color.Default;
+	}
+
+	private void SelectImageSize(string size)
+	{
+		selectedImageSize = size;
+		StateHasChanged();
+	}
+
+	private async Task RequestDownload()
+	{
+		if (!isFormValid)
+		{
+			return;
+		}
+
+
+		isLoading = true;
+		statusMessage = string.Empty;
+		StateHasChanged();
+
+		try
+		{
+			var httpClient = HttpClientClientFactory.CreateClient();
+
+			var requestBody = new { mobilenr = mobileNumber, imageSize = selectedImageSize };
+			var json = JsonSerializer.Serialize(requestBody);
+			var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+			var response = await httpClient.PostAsync("", content);
+
+			if (response.IsSuccessStatusCode)
+			{
+				statusMessage = "Download-Anfrage erfolgreich gesendet! Du erhältst in Kürze eine SMS mit dem Download-Link.";
+				statusSeverity = Severity.Success;
+				mobileNumber = string.Empty;
+				
+				Snackbar.Add("Download-Link wird per SMS gesendet", Severity.Success);
+			}
+			else
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				statusMessage = $"Fehler beim Senden der Anfrage. Bitte versuche es später erneut.";
+				statusSeverity = Severity.Error;
+				
+				Snackbar.Add("Fehler beim Anfordern des Downloads", Severity.Error);
+			}
+		}
+		catch (HttpRequestException)
+		{
+			statusMessage = "Verbindungsfehler. Bitte überprüfe Deine Internetverbindung und versuche es erneut.";
+			statusSeverity = Severity.Error;
+			
+			Snackbar.Add("Verbindungsfehler", Severity.Error);
+		}
+		catch (Exception)
+		{
+			statusMessage = "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.";
+			statusSeverity = Severity.Error;
+			
+			Snackbar.Add("Unerwarteter Fehler", Severity.Error);
+		}
+		finally
+		{
+			isLoading = false;
+			StateHasChanged();
+		}
+	}
+}
