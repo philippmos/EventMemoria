@@ -23,7 +23,8 @@ public class FileValidationService(IOptions<PhotoOptions> photoOptions) : IFileV
 
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
 
-        if (!photoOptions.Value.AllowedFileTypes.Contains(extension))
+        if (photoOptions.Value.AllowedFileTypes.Any() &&
+            !photoOptions.Value.AllowedFileTypes.Contains(extension))
         {
             return ValidationResult.Failure($"Dateityp '{extension}' wird nicht unterstützt");
         }

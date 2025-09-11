@@ -1,0 +1,40 @@
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+
+<MudChipSet T="string" Class="header__navigation-chipset" SelectionMode="SelectionMode.SingleSelection">
+
+	@foreach (var navElement in NavigationElements)
+	{
+		<a href="@navElement.Url">
+			<MudChip T="string" Class="@GetNavChipClass(navElement.Url)"
+						Icon="@navElement.Icon">
+				@navElement.Title
+			</MudChip>
+		</a>
+	}
+
+</MudChipSet>
+
+@code {
+	[Inject] private NavigationManager Navigation { get; set; } = null!;
+
+	private string CurrentUri => Navigation.Uri;
+
+	private IEnumerable<NavigationElement> NavigationElements => new List<NavigationElement>
+	{
+		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary)
+	};
+
+	private bool IsCurrentPage(string page)
+	{
+		var currentPath = new Uri(CurrentUri).AbsolutePath;
+		return string.Equals(currentPath, page, StringComparison.OrdinalIgnoreCase);
+	}
+
+	private string GetNavChipClass(string page)
+	{
+		return IsCurrentPage(page)
+				? "header__navigation-chip header__navigation-chip--active"
+				: "header__navigation-chip";
+	}
+}

@@ -1,0 +1,11 @@
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+
+<PageTitle>@Value - @CustomizationOptions.Value.PageTitle</PageTitle>
+
+
+@code {
+	[Parameter] public string Value { get; set; } = string.Empty;
+
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+}

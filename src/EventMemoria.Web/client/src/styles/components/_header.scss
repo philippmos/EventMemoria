@@ -41,4 +41,60 @@
       padding: 0 $spacing-md;
     }
   }
+
+  &__navigation {
+    margin-top: 1.5rem;
+
+    @include mobile-only {
+      margin-top: 1rem;
+    }
+
+    &-chipset {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      @include mobile-only {
+        gap: 0.5rem;
+      }
+    }
+
+    &-chip {
+      background: rgba(255, 255, 255, 0.15);
+      color: $color-white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-weight: $font-weight-medium;
+      letter-spacing: 0.5px;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+
+      @include mobile-only {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.8rem;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(168, 108, 108, 0.3);
+      }
+
+      &--active {
+        background: rgba(255, 255, 255, 0.9);
+        color: $wedding-rose;
+        border-color: rgba(255, 255, 255, 0.9);
+        font-weight: $font-weight-semibold;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+          background: rgba(255, 255, 255, 1);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+      }
+    }
+  }
 }
