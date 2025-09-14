@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using Azure.Data.Tables;
 using EventMemoria.Web.Services;
 using EventMemoria.Web.Services.Interfaces;
 
@@ -13,11 +14,13 @@ public static class DependencyInjection
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
 
         services.AddSingleton(_ => new BlobServiceClient(connectionString));
+        services.AddSingleton(_ => new TableServiceClient(connectionString));
 
         services.AddScoped<IStorageService, BlobStorageService>();
         services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IPhotoGridService, PhotoGridService>();
         services.AddScoped<IFileValidationService, FileValidationService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
+        services.AddScoped<ISubscriberService, SubscriberService>();
     }
 }

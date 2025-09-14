@@ -1,5 +1,6 @@
 @using System.Text.Json
 @using System.Text
+@using EventMemoria.Web.Services.Interfaces
 
 <MudForm @ref="form" @bind-IsValid="@IsFormValid" Class="download-form-container">
 	<MudStack Spacing="3">
@@ -49,7 +50,7 @@
 }
 
 @code {
-	[Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+	[Inject] private ISubscriberService SubscriberService { get; set; } = null!;
 	[Inject] private ISnackbar Snackbar { get; set; } = null!;
 
 	[Parameter] public string EmailAddress { get; set; } = string.Empty;
@@ -91,15 +92,9 @@
 
 		try
 		{
-			var httpClient = HttpClientFactory.CreateClient();
+			var success = await SubscriberService.AddSubscriberAsync(EmailAddress);
 
-			var requestBody = new { email = EmailAddress };
-			var json = JsonSerializer.Serialize(requestBody);
-			var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-			var response = await httpClient.PostAsync("", content);
-
-			if (response.IsSuccessStatusCode)
+			if (success)
 			{
 				await EmailAddressChanged.InvokeAsync(string.Empty);
 				Snackbar.Add("E-Mail-Benachrichtigung registriert", Severity.Success);
@@ -111,14 +106,9 @@
 				await OnDownloadError.InvokeAsync();
 			}
 		}
-		catch (HttpRequestException)
-		{
-			Snackbar.Add("Verbindungsfehler", Severity.Error);
-			await OnDownloadError.InvokeAsync();
-		}
 		catch (Exception)
 		{
-			Snackbar.Add("Unerwarteter Fehler", Severity.Error);
+			Snackbar.Add("Unerwarteter Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
 			await OnDownloadError.InvokeAsync();
 		}
 		finally
