@@ -1,17 +1,17 @@
 @using MudBlazor
 
-<MudStack AlignItems="AlignItems.Center" Spacing="2">
-	<MudIcon Icon="@Icons.Material.Filled.Download" Class="name-modal-icon" />
+<MudStack AlignItems="AlignItems.Center" Spacing="2" Class="download-info-container">
+	<MudIcon Icon="@Icons.Material.Filled.Email" Class="name-modal-icon" />
 	<MudText Typo="Typo.h4" Class="qr-code-title" Style="color: #a86c6c;">
-		Bilder Download anfordern
+		Downloadlink anfordern
 	</MudText>
-	<MudText Typo="Typo.body1" Class="qr-code-description">
-		Erhalte alle Event-Bilder direkt auf dein Smartphone per SMS
+	<MudText Typo="Typo.body1" Class="qr-code-description" Style="text-align: center; margin-bottom: 0;">
+		Erhalte alle Event-Bilder per E-Mail, sobald das Event beendet ist
 	</MudText>
 </MudStack>
 
-<MudAlert Severity="Severity.Info" Class="mt-2" Style="max-width: 400px; border-radius: 8px;">
-	<MudText Typo="Typo.body2">
-		<strong>SMS-Benachrichtigung:</strong> Du erhältst einen Download-Link per SMS, sobald das Archiv erstellt wurde. Das Erstellen kann je nach Datenmenge etwas Zeit in Anspruch nehmen.
+<MudAlert Severity="Severity.Info" Class="mt-3 download-info-alert" Style="border-radius: 8px; margin: 0 auto;">
+	<MudText Typo="Typo.body2" Style="text-align: center;">
+		<strong>Wichtiger Hinweis:</strong> Du erhältst den Download-Link erst nach Abschluss des Events, wenn alle Bilder hochgeladen und eingesammelt wurden. Dies kann ein klein wenig dauern.
 	</MudText>
 </MudAlert>

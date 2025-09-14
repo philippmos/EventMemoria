@@ -1,27 +1,28 @@
 @using System.Text.Json
 @using System.Text
 
-<MudForm @ref="form" @bind-IsValid="@IsFormValid" Style="width: 100%; max-width: 400px;">
+<MudForm @ref="form" @bind-IsValid="@IsFormValid" Class="download-form-container">
 	<MudStack Spacing="3">
-		<MudTextField @bind-Value="MobileNumber"
-					  Label="Handynummer"
-					  Placeholder="+49 123 456789"
+		<MudTextField @bind-Value="EmailAddress"
+					  Label="E-Mail-Adresse"
+					  Placeholder="deine@email.de"
 					  Variant="Variant.Outlined"
 					  Required="true"
-					  RequiredError="Handynummer ist erforderlich"
-					  Validation="@(new Func<string, IEnumerable<string>>(ValidateMobileNumber))"
+					  RequiredError="E-Mail-Adresse ist erforderlich"
+					  Validation="@(new Func<string, IEnumerable<string>>(ValidateEmailAddress))"
 					  Disabled="@IsLoading"
 					  Adornment="Adornment.Start"
-					  AdornmentIcon="@Icons.Material.Filled.Phone"
+					  AdornmentIcon="@Icons.Material.Filled.Email"
+					  Class="download-email-input"
 					  Style="background: white; border-radius: 8px;" />
 
 		<MudButton Variant="Variant.Filled"
 				   Color="Color.Primary"
 				   Size="Size.Large"
-				   OnClick="HandleDownloadRequest"
+				   OnClick="HandleEmailRegistration"
 				   Disabled="@(!IsFormValid || IsLoading)"
-				   StartIcon="@Icons.Material.Filled.Download"
-				   Class="qr-download-button"
+				   StartIcon="@Icons.Material.Filled.Notifications"
+				   Class="qr-download-button download-submit-button"
 				   FullWidth="true">
 			@if (IsLoading)
 			{
@@ -30,7 +31,7 @@
 			}
 			else
 			{
-				<MudText>Download anfordern</MudText>
+				<MudText>Jetzt anmelden</MudText>
 			}
 		</MudButton>
 	</MudStack>
@@ -39,8 +40,8 @@
 @if (!string.IsNullOrEmpty(StatusMessage))
 {
 	<MudAlert Severity="@StatusSeverity" 
-			  Class="mt-2" 
-			  Style="max-width: 400px; border-radius: 8px;"
+			  Class="mt-3 download-status-alert" 
+			  Style="border-radius: 8px;"
 			  CloseIcon="@Icons.Material.Filled.Close"
 			  CloseIconClicked="() => OnStatusMessageCleared.InvokeAsync()">
 		@StatusMessage
@@ -51,9 +52,8 @@
 	[Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
 	[Inject] private ISnackbar Snackbar { get; set; } = null!;
 
-	[Parameter] public string MobileNumber { get; set; } = string.Empty;
-	[Parameter] public EventCallback<string> MobileNumberChanged { get; set; }
-	[Parameter] public string SelectedImageSize { get; set; } = "compressed";
+	[Parameter] public string EmailAddress { get; set; } = string.Empty;
+	[Parameter] public EventCallback<string> EmailAddressChanged { get; set; }
 	[Parameter] public bool IsLoading { get; set; }
 	[Parameter] public EventCallback<bool> IsLoadingChanged { get; set; }
 	[Parameter] public string StatusMessage { get; set; } = string.Empty;
@@ -65,34 +65,22 @@
 	private MudForm form = null!;
 	private bool IsFormValid { get; set; }
 
-	private IEnumerable<string> ValidateMobileNumber(string value)
+	private IEnumerable<string> ValidateEmailAddress(string value)
 	{
 		if (string.IsNullOrWhiteSpace(value))
 		{
-			yield return "Handynummer ist erforderlich";
+			yield return "E-Mail-Adresse ist erforderlich";
 		}
 		else
 		{
-			var cleanNumber = value.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
-
-			if (cleanNumber.Length < 10 || cleanNumber.Length > 15)
+			if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
 			{
-				yield return "Handynummer muss zwischen 10 und 15 Zeichen lang sein";
-			}
-
-			if (!cleanNumber.StartsWith("+") && !cleanNumber.StartsWith("0"))
-			{
-				yield return "Handynummer muss mit + oder 0 beginnen";
-			}
-
-			if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[\+]?[0-9\s\-\(\)]+$"))
-			{
-				yield return "Handynummer enthält ungültige Zeichen";
+				yield return "Ungültige E-Mail-Adresse";
 			}
 		}
 	}
 
-	private async Task HandleDownloadRequest()
+	private async Task HandleEmailRegistration()
 	{
 		if (!IsFormValid)
 		{
@@ -105,7 +93,7 @@
 		{
 			var httpClient = HttpClientFactory.CreateClient();
 
-			var requestBody = new { mobilenr = MobileNumber, imageSize = SelectedImageSize };
+			var requestBody = new { email = EmailAddress };
 			var json = JsonSerializer.Serialize(requestBody);
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -113,13 +101,13 @@
 
 			if (response.IsSuccessStatusCode)
 			{
-				await MobileNumberChanged.InvokeAsync(string.Empty);
-				Snackbar.Add("Download-Link wird per SMS gesendet", Severity.Success);
+				await EmailAddressChanged.InvokeAsync(string.Empty);
+				Snackbar.Add("E-Mail-Benachrichtigung registriert", Severity.Success);
 				await OnDownloadSuccess.InvokeAsync();
 			}
 			else
 			{
-				Snackbar.Add("Fehler beim Anfordern des Downloads", Severity.Error);
+				Snackbar.Add("Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
 				await OnDownloadError.InvokeAsync();
 			}
 		}

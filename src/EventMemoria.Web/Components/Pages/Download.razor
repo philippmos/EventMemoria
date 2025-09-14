@@ -8,48 +8,42 @@
 
 <CustomPageTitle Value="Download" />
 
-<div class="birds-container">
-	<HeaderComponent />
+<HeaderComponent />
 	
-	<div class="qr-code-container">
-		<MudStack Spacing="4" AlignItems="AlignItems.Center">
+<div class="qr-code-container download-page-container">
+	<MudStack Spacing="4" AlignItems="AlignItems.Center" Class="download-content-stack">
 
-			<DownloadInfo />
+		<DownloadInfo />
 
-			<ImageQualitySelector @bind-SelectedImageSize="selectedImageSize" />
+		<DownloadForm @bind-EmailAddress="emailAddress"
+						@bind-IsLoading="isLoading"
+						StatusMessage="@statusMessage"
+						StatusSeverity="statusSeverity"
+						OnDownloadSuccess="HandleDownloadSuccess"
+						OnDownloadError="HandleDownloadError"
+						OnStatusMessageCleared="() => statusMessage = string.Empty" />
 
-			<DownloadForm @bind-MobileNumber="mobileNumber"
-						  SelectedImageSize="selectedImageSize"
-						  @bind-IsLoading="isLoading"
-						  StatusMessage="statusMessage"
-						  StatusSeverity="statusSeverity"
-						  OnDownloadSuccess="HandleDownloadSuccess"
-						  OnDownloadError="HandleDownloadError"
-						  OnStatusMessageCleared="() => statusMessage = string.Empty" />
-
-		</MudStack>
-	</div>
+	</MudStack>
 </div>
 
 @code {
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 
 	private bool isLoading;
-	private string mobileNumber = string.Empty;
-	private string selectedImageSize = "compressed";
+	private string emailAddress = string.Empty;
 	private string statusMessage = string.Empty;
 	private Severity statusSeverity = Severity.Info;
 
 	private void HandleDownloadSuccess()
 	{
-		statusMessage = "Download-Anfrage erfolgreich gesendet! Du erhältst in Kürze eine SMS mit dem Download-Link.";
+		statusMessage = "E-Mail-Adresse erfolgreich registriert! Du erhältst eine E-Mail mit dem Download-Link, sobald alle Bilder hochgeladen wurden.";
 		statusSeverity = Severity.Success;
 		StateHasChanged();
 	}
 
 	private void HandleDownloadError()
 	{
-		statusMessage = "Fehler beim Senden der Anfrage. Bitte versuche es später erneut.";
+		statusMessage = "Fehler beim Registrieren der E-Mail-Adresse. Bitte versuche es später erneut.";
 		statusSeverity = Severity.Error;
 		StateHasChanged();
 	}
