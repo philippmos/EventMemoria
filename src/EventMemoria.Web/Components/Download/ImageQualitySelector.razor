@@ -1,0 +1,75 @@
+<MudStack Spacing="3" Style="width: 100%; max-width: 400px;">
+	<MudText Typo="Typo.h6" Align="Align.Center" Style="color: #a86c6c; font-weight: 600;">
+		Bildqualität wählen
+	</MudText>
+
+	<MudStack Spacing="2">
+		<MudPaper Class="pa-3" Elevation="2" Style="@GetRadioCardStyle("full")" @onclick="@(() => SelectImageSize("full"))">
+			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+				<MudIcon Icon="@Icons.Material.Filled.HighQuality" Color="@GetIconColor("full")" />
+				<MudStack Spacing="1" Style="flex: 1;">
+					<MudText Typo="Typo.subtitle2" Style="font-weight: 600;">Volle Größe</MudText>
+					<MudText Typo="Typo.caption" Class="mud-text-secondary">
+						Originalqualität
+					</MudText>
+				</MudStack>
+				@if (SelectedImageSize == "full")
+				{
+					<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+				}
+				else
+				{
+					<MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Class="mud-text-secondary" />
+				}
+			</MudStack>
+		</MudPaper>
+
+		<MudPaper Class="pa-3" Elevation="2" Style="@GetRadioCardStyle("compressed")" @onclick="@(() => SelectImageSize("compressed"))">
+			<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+				<MudIcon Icon="@Icons.Material.Filled.Compress" Color="@GetIconColor("compressed")" />
+				<MudStack Spacing="1" Style="flex: 1;">
+					<MudText Typo="Typo.subtitle2" Style="font-weight: 600;">
+						Komprimiert <MudChip T="string" Size="Size.Small" Color="Color.Success" Text="Empfohlen" Style="margin-left: 8px;" />
+					</MudText>
+					<MudText Typo="Typo.caption" Class="mud-text-secondary">
+						Optimiert für schnellen Download
+					</MudText>
+				</MudStack>
+				@if (SelectedImageSize == "compressed")
+				{
+					<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+				}
+				else
+				{
+					<MudIcon Icon="@Icons.Material.Outlined.RadioButtonUnchecked" Class="mud-text-secondary" />
+				}
+			</MudStack>
+		</MudPaper>
+	</MudStack>
+</MudStack>
+
+@code {
+	[Parameter] public string SelectedImageSize { get; set; } = "compressed";
+	[Parameter] public EventCallback<string> SelectedImageSizeChanged { get; set; }
+
+	private string GetRadioCardStyle(string option)
+	{
+		var baseStyle = "border-radius: 8px; transition: all 0.3s ease; cursor: pointer;";
+		if (SelectedImageSize == option)
+		{
+			return baseStyle + " border: 2px solid #a86c6c; background-color: #f5f5f5;";
+		}
+		return baseStyle + " border: 1px solid #e0e0e0; background-color: white;";
+	}
+
+	private Color GetIconColor(string option)
+	{
+		return SelectedImageSize == option ? Color.Primary : Color.Default;
+	}
+
+	private async Task SelectImageSize(string size)
+	{
+		SelectedImageSize = size;
+		await SelectedImageSizeChanged.InvokeAsync(size);
+	}
+}

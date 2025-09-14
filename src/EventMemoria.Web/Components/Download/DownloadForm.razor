@@ -1,0 +1,141 @@
+@using System.Text.Json
+@using System.Text
+
+<MudForm @ref="form" @bind-IsValid="@IsFormValid" Style="width: 100%; max-width: 400px;">
+	<MudStack Spacing="3">
+		<MudTextField @bind-Value="MobileNumber"
+					  Label="Handynummer"
+					  Placeholder="+49 123 456789"
+					  Variant="Variant.Outlined"
+					  Required="true"
+					  RequiredError="Handynummer ist erforderlich"
+					  Validation="@(new Func<string, IEnumerable<string>>(ValidateMobileNumber))"
+					  Disabled="@IsLoading"
+					  Adornment="Adornment.Start"
+					  AdornmentIcon="@Icons.Material.Filled.Phone"
+					  Style="background: white; border-radius: 8px;" />
+
+		<MudButton Variant="Variant.Filled"
+				   Color="Color.Primary"
+				   Size="Size.Large"
+				   OnClick="HandleDownloadRequest"
+				   Disabled="@(!IsFormValid || IsLoading)"
+				   StartIcon="@Icons.Material.Filled.Download"
+				   Class="qr-download-button"
+				   FullWidth="true">
+			@if (IsLoading)
+			{
+				<MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+				<MudText Class="ms-2">Wird verarbeitet...</MudText>
+			}
+			else
+			{
+				<MudText>Download anfordern</MudText>
+			}
+		</MudButton>
+	</MudStack>
+</MudForm>
+
+@if (!string.IsNullOrEmpty(StatusMessage))
+{
+	<MudAlert Severity="@StatusSeverity" 
+			  Class="mt-2" 
+			  Style="max-width: 400px; border-radius: 8px;"
+			  CloseIcon="@Icons.Material.Filled.Close"
+			  CloseIconClicked="() => OnStatusMessageCleared.InvokeAsync()">
+		@StatusMessage
+	</MudAlert>
+}
+
+@code {
+	[Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+	[Parameter] public string MobileNumber { get; set; } = string.Empty;
+	[Parameter] public EventCallback<string> MobileNumberChanged { get; set; }
+	[Parameter] public string SelectedImageSize { get; set; } = "compressed";
+	[Parameter] public bool IsLoading { get; set; }
+	[Parameter] public EventCallback<bool> IsLoadingChanged { get; set; }
+	[Parameter] public string StatusMessage { get; set; } = string.Empty;
+	[Parameter] public Severity StatusSeverity { get; set; } = Severity.Info;
+	[Parameter] public EventCallback OnDownloadSuccess { get; set; }
+	[Parameter] public EventCallback OnDownloadError { get; set; }
+	[Parameter] public EventCallback OnStatusMessageCleared { get; set; }
+
+	private MudForm form = null!;
+	private bool IsFormValid { get; set; }
+
+	private IEnumerable<string> ValidateMobileNumber(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			yield return "Handynummer ist erforderlich";
+		}
+		else
+		{
+			var cleanNumber = value.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+
+			if (cleanNumber.Length < 10 || cleanNumber.Length > 15)
+			{
+				yield return "Handynummer muss zwischen 10 und 15 Zeichen lang sein";
+			}
+
+			if (!cleanNumber.StartsWith("+") && !cleanNumber.StartsWith("0"))
+			{
+				yield return "Handynummer muss mit + oder 0 beginnen";
+			}
+
+			if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[\+]?[0-9\s\-\(\)]+$"))
+			{
+				yield return "Handynummer enthält ungültige Zeichen";
+			}
+		}
+	}
+
+	private async Task HandleDownloadRequest()
+	{
+		if (!IsFormValid)
+		{
+			return;
+		}
+
+		await IsLoadingChanged.InvokeAsync(true);
+
+		try
+		{
+			var httpClient = HttpClientFactory.CreateClient();
+
+			var requestBody = new { mobilenr = MobileNumber, imageSize = SelectedImageSize };
+			var json = JsonSerializer.Serialize(requestBody);
+			var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+			var response = await httpClient.PostAsync("", content);
+
+			if (response.IsSuccessStatusCode)
+			{
+				await MobileNumberChanged.InvokeAsync(string.Empty);
+				Snackbar.Add("Download-Link wird per SMS gesendet", Severity.Success);
+				await OnDownloadSuccess.InvokeAsync();
+			}
+			else
+			{
+				Snackbar.Add("Fehler beim Anfordern des Downloads", Severity.Error);
+				await OnDownloadError.InvokeAsync();
+			}
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.Add("Verbindungsfehler", Severity.Error);
+			await OnDownloadError.InvokeAsync();
+		}
+		catch (Exception)
+		{
+			Snackbar.Add("Unerwarteter Fehler", Severity.Error);
+			await OnDownloadError.InvokeAsync();
+		}
+		finally
+		{
+			await IsLoadingChanged.InvokeAsync(false);
+		}
+	}
+}

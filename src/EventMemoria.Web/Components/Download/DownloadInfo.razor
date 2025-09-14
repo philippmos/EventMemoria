@@ -1,0 +1,17 @@
+@using MudBlazor
+
+<MudStack AlignItems="AlignItems.Center" Spacing="2">
+	<MudIcon Icon="@Icons.Material.Filled.Download" Class="name-modal-icon" />
+	<MudText Typo="Typo.h4" Class="qr-code-title" Style="color: #a86c6c;">
+		Bilder Download anfordern
+	</MudText>
+	<MudText Typo="Typo.body1" Class="qr-code-description">
+		Erhalte alle Event-Bilder direkt auf dein Smartphone per SMS
+	</MudText>
+</MudStack>
+
+<MudAlert Severity="Severity.Info" Class="mt-2" Style="max-width: 400px; border-radius: 8px;">
+	<MudText Typo="Typo.body2">
+		<strong>SMS-Benachrichtigung:</strong> Du erhältst einen Download-Link per SMS, sobald das Archiv erstellt wurde. Das Erstellen kann je nach Datenmenge etwas Zeit in Anspruch nehmen.
+	</MudText>
+</MudAlert>
