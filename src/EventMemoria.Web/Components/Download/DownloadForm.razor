@@ -11,6 +11,7 @@
 					  Required="true"
 					  RequiredError="E-Mail-Adresse ist erforderlich"
 					  Validation="@(new Func<string, IEnumerable<string>>(ValidateEmailAddress))"
+					  Immediate="true"
 					  Disabled="@IsLoading"
 					  Adornment="Adornment.Start"
 					  AdornmentIcon="@Icons.Material.Filled.Email"
