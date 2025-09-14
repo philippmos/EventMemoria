@@ -52,3 +52,4 @@ jobs:
         file: ./src/EventMemoria.Web/Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         tags: ${{ vars.DOCKER_HUB_REPO_NAME }}:${{ github.run_id }}
+        platforms: linux/amd64,linux/arm64
