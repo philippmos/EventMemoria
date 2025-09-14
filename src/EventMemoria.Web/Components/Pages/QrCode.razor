@@ -1,71 +1,79 @@
 @page "/qrcode"
 
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
 @using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
 @using QRCoder.Core
 
 @rendermode InteractiveServer
 
 <CustomPageTitle Value="QR Code" />
 
-<div class="birds-container">
-	<HeaderComponent />
+<HeaderComponent />
 
-	@if (_svgCode is null)
-	{
-		<div class="qr-loading">
-			<MudProgressCircular Class="qr-loading-spinner" Size="Size.Large" Indeterminate="true" />
-			<MudText Typo="Typo.h6">QR Code wird generiert...</MudText>
+@if (_svgCode is null)
+{
+	<div class="qr-loading">
+		<MudProgressCircular Class="qr-loading-spinner" Size="Size.Large" Indeterminate="true" />
+		<MudText Typo="Typo.h6">QR Code wird generiert...</MudText>
+	</div>
+}
+else
+{
+	<div class="qr-code-container">
+		<MudText Typo="Typo.h4" Class="qr-code-title">
+			QR Code
+		</MudText>
+
+		<MudText Typo="Typo.body1" Class="qr-code-description">
+			Scanne diesen QR Code, um zur Event-Galerie zu gelangen und Deine Fotos hochzuladen.
+		</MudText>
+
+		<div class="qr-code-wrapper">
+			@_svgCode
 		</div>
-	}
-	else
-	{
-		<div class="qr-code-container">
-			<MudText Typo="Typo.h4" Class="qr-code-title">
-				QR Code
-			</MudText>
 
-			<MudText Typo="Typo.body1" Class="qr-code-description">
-				Scanne diesen QR Code, um zur Event-Galerie zu gelangen und Deine Fotos hochzuladen.
-			</MudText>
+		<div class="download-section">
+			<MudButton Variant="MudBlazor.Variant.Filled"
+						Class="qr-download-button"
+						StartIcon="@Icons.Material.Filled.Download"
+						OnClick="DownloadSvgAsync"
+						Size="Size.Large">
+				QR Code herunterladen
+			</MudButton>
 
-			<div class="qr-code-wrapper">
-				@_svgCode
-			</div>
-
-			<div class="download-section">
-				<MudButton Variant="Variant.Filled"
-						   Class="qr-download-button"
-						   StartIcon="@Icons.Material.Filled.Download"
-						   OnClick="DownloadSvgAsync"
-						   Size="Size.Large">
-					QR Code herunterladen
-				</MudButton>
-
-				<MudButton Variant="Variant.Outlined"
-						   Class="qr-copy-button"
-						   StartIcon="@Icons.Material.Filled.ContentCopy"
-						   OnClick="CopyUrlAsync"
-						   Size="Size.Large"
-						   Style="margin-top: 0.5rem;">
-					URL kopieren
-				</MudButton>
-			</div>
+			<MudButton Variant="MudBlazor.Variant.Outlined"
+						Class="qr-copy-button"
+						StartIcon="@Icons.Material.Filled.ContentCopy"
+						OnClick="CopyUrlAsync"
+						Size="Size.Large"
+						Style="margin-top: 0.5rem;">
+				URL kopieren
+			</MudButton>
 		</div>
-	}
-</div>
+	</div>
+}
 
 @code {
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 	[Inject] private ILogger<QrCode> Logger { get; set; } = null!;
 	[Inject] private IJSRuntime JsRuntime { get; set; } = null!;
 	[Inject] private ISnackbar Snackbar { get; set; } = null!;
+	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+	[Inject] private NavigationManager Navigation { get; set; } = null!;
 
 	private MarkupString? _svgCode;
 	private string? _svgContent;
 
 	protected override async Task OnInitializedAsync()
 	{
+		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
+		{
+			Navigation.NavigateTo("/", true);
+			return;
+		}
+
 		var targetUrl = CustomizationOptions.Value.QrCodeTargetUrl;
 		var qrCodeGenerator = new QRCodeGenerator();
 		var qrCodeDate = qrCodeGenerator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.Q);

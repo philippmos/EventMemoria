@@ -1,0 +1,18 @@
+@using MudBlazor
+
+<MudStack AlignItems="AlignItems.Center" Spacing="2" Class="download-info-container">
+	<MudIcon Icon="@Icons.Material.Filled.Email" Class="name-modal-icon" />
+	<MudText Typo="Typo.h4" Class="qr-code-title" Style="color: #a86c6c;">
+		Downloadlink anfordern
+	</MudText>
+	<MudText Typo="Typo.body1" Class="qr-code-description" Style="text-align: center; margin-bottom: 0;">
+		Erhalte alle Event-Bilder ganz einfach per E-Mail
+	</MudText>
+</MudStack>
+
+<MudAlert Severity="Severity.Info" Class="download-info-alert" Style="border-radius: 8px; margin: 0 auto;">
+	<MudText Typo="Typo.body2" Style="text-align: center;">
+		<strong>Wichtiger Hinweis:</strong> Du erhältst den Download-Link erst nach Abschluss des Events, wenn alle Bilder hochgeladen und eingesammelt wurden. Dies kann ein klein wenig dauern.
+		Schaue dann ggf. auch in Deinem Spam-Ordner nach.
+	</MudText>
+</MudAlert>

@@ -9,14 +9,12 @@
 
 <NameModal OnNameSaved="@OnNameSaved" />
 
-<div class="birds-container">
-    <HeaderComponent />
+<HeaderComponent />
 
-    <UploadComponent @ref="_uploadComponent"
-                          OnPhotosUploaded="@RefreshVirtualizedGridAsync" />
-    <VirtualizedGrid @ref="_virtualizedGrid"
-                          OnPhotosLoaded="@OnPhotosLoaded" />
-</div>
+<UploadComponent @ref="_uploadComponent"
+                        OnPhotosUploaded="@RefreshVirtualizedGridAsync" />
+<VirtualizedGrid @ref="_virtualizedGrid"
+                        OnPhotosLoaded="@OnPhotosLoaded" />
 
 @code {
 

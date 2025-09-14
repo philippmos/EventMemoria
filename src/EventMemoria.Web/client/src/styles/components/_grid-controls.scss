@@ -5,27 +5,6 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch; 
   @include hide-scrollbar;
-  
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 16px;
-    pointer-events: none;
-    z-index: 1;
-  }
-  
-  &::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.8), transparent);
-  }
-  
-  &::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255, 255, 255, 0.8), transparent);
-  }
 }
 
 .grid-controls-chipset {

@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Settings;
 using EventMemoria.Web.Components;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.FeatureManagement;
 using MudBlazor.Services;
 
 namespace EventMemoria.Web.Common;
@@ -12,12 +13,16 @@ public static class PmoWebApp
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Services.AddHttpClient();
+
         builder.Services.AddMudServices();
 
         builder.Services.AddHealthChecks();
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        builder.Services.AddFeatureManagement();
 
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddConfigurations(builder.Configuration);

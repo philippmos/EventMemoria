@@ -1,0 +1,119 @@
+@using System.Text.Json
+@using System.Text
+@using EventMemoria.Web.Services.Interfaces
+
+<MudForm @ref="form" @bind-IsValid="@IsFormValid" Class="download-form-container">
+	<MudStack Spacing="3">
+		<MudTextField @bind-Value="EmailAddress"
+					  Label="E-Mail-Adresse"
+					  Placeholder="deine@email.de"
+					  Variant="Variant.Outlined"
+					  Required="true"
+					  RequiredError="E-Mail-Adresse ist erforderlich"
+					  Validation="@(new Func<string, IEnumerable<string>>(ValidateEmailAddress))"
+					  Disabled="@IsLoading"
+					  Adornment="Adornment.Start"
+					  AdornmentIcon="@Icons.Material.Filled.Email"
+					  Class="download-email-input"
+					  Style="background: white; border-radius: 8px;" />
+
+		<MudButton Variant="Variant.Filled"
+				   Color="Color.Primary"
+				   Size="Size.Large"
+				   OnClick="HandleEmailRegistration"
+				   Disabled="@(!IsFormValid || IsLoading)"
+				   StartIcon="@Icons.Material.Filled.Notifications"
+				   Class="qr-download-button download-submit-button"
+				   FullWidth="true">
+			@if (IsLoading)
+			{
+				<MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+				<MudText Class="ms-2">Wird verarbeitet...</MudText>
+			}
+			else
+			{
+				<MudText>Jetzt anmelden</MudText>
+			}
+		</MudButton>
+	</MudStack>
+</MudForm>
+
+@if (!string.IsNullOrEmpty(StatusMessage))
+{
+	<MudAlert Severity="@StatusSeverity" 
+			  Class="mt-3 download-status-alert" 
+			  Style="border-radius: 8px;"
+			  CloseIcon="@Icons.Material.Filled.Close"
+			  CloseIconClicked="() => OnStatusMessageCleared.InvokeAsync()">
+		@StatusMessage
+	</MudAlert>
+}
+
+@code {
+	[Inject] private ISubscriberService SubscriberService { get; set; } = null!;
+	[Inject] private ISnackbar Snackbar { get; set; } = null!;
+
+	[Parameter] public string EmailAddress { get; set; } = string.Empty;
+	[Parameter] public EventCallback<string> EmailAddressChanged { get; set; }
+	[Parameter] public bool IsLoading { get; set; }
+	[Parameter] public EventCallback<bool> IsLoadingChanged { get; set; }
+	[Parameter] public string StatusMessage { get; set; } = string.Empty;
+	[Parameter] public Severity StatusSeverity { get; set; } = Severity.Info;
+	[Parameter] public EventCallback OnDownloadSuccess { get; set; }
+	[Parameter] public EventCallback OnDownloadError { get; set; }
+	[Parameter] public EventCallback OnStatusMessageCleared { get; set; }
+
+	private MudForm form = null!;
+	private bool IsFormValid { get; set; }
+
+	private IEnumerable<string> ValidateEmailAddress(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			yield return "E-Mail-Adresse ist erforderlich";
+		}
+		else
+		{
+			if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+			{
+				yield return "Ungültige E-Mail-Adresse";
+			}
+		}
+	}
+
+	private async Task HandleEmailRegistration()
+	{
+		if (!IsFormValid)
+		{
+			return;
+		}
+
+		await IsLoadingChanged.InvokeAsync(true);
+
+		try
+		{
+			var success = await SubscriberService.AddSubscriberAsync(EmailAddress);
+
+			if (success)
+			{
+				await EmailAddressChanged.InvokeAsync(string.Empty);
+				Snackbar.Add("E-Mail-Benachrichtigung registriert", Severity.Success);
+				await OnDownloadSuccess.InvokeAsync();
+			}
+			else
+			{
+				Snackbar.Add("Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
+				await OnDownloadError.InvokeAsync();
+			}
+		}
+		catch (Exception)
+		{
+			Snackbar.Add("Unerwarteter Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
+			await OnDownloadError.InvokeAsync();
+		}
+		finally
+		{
+			await IsLoadingChanged.InvokeAsync(false);
+		}
+	}
+}
