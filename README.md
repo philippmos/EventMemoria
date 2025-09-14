@@ -128,6 +128,23 @@ Struktur aus secrets.example.json
 - Das Foto öffnet sich in einem Vollbild-Dialog
 - Navigieren mit den Pfeiltasten oder Schaltflächen durch die Galerie
 
+### Download-Anfordern-Funktionalität
+
+Die Anwendung bietet eine integrierte Funktion, über die Benutzer alle Event-Fotos als Download anfordern können:
+
+#### Funktionsweise
+
+1. **E-Mail-Registrierung**: Benutzer können ihre E-Mail-Adresse auf der `/download`-Seite hinterlegen
+2. **Validierung**: Die E-Mail-Adresse wird validiert und in Azure Table Storage gespeichert
+3. **Benachrichtigung**: Nach Abschluss des Events können registrierte Benutzer einen Download-Link per E-Mail erhalten
+4. **Duplikatschutz**: Mehrfache Registrierungen mit derselben E-Mail-Adresse werden verhindert
+
+#### Technische Details
+
+- **E-Mail-Template**: Vorgefertigte HTML-E-Mail-Vorlage im `mailing/`-Ordner
+- **Storage**: Subscriber werden in Azure Table Storage (`DownloadSubscribers`) gespeichert
+
+
 ### Unterstützte Dateiformate
 
 - JPEG (.jpg, .jpeg)
