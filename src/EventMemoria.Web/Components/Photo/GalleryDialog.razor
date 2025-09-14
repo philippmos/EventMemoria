@@ -1,6 +1,7 @@
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Helpers
 @using EventMemoria.Web.Services.Interfaces
+@using Microsoft.FeatureManagement
 
 <MudDialog>
     <TitleContent>
@@ -14,7 +15,7 @@
             <MudSpacer />
             @if (TotalPages > 1)
             {
-                <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+                <MudButtonGroup Size="Size.Small" Variant="MudBlazor.Variant.Outlined">
                     <MudButton OnClick="LoadPreviousPageAsync"
                               Disabled="@(CurrentPage <= 1 || IsLoadingPage)"
                               StartIcon="Icons.Material.Filled.NavigateBefore">
@@ -71,9 +72,13 @@
                             <MudText Typo="Typo.body2" Class="text-muted">
                                 @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
                             </MudText>
-                            <MudText Typo="Typo.body2" Class="text-muted">
-                                <strong>Author:</strong> @CurrentPhoto.Author
-                            </MudText>
+
+							@if (_showAuthorInfo)
+							{
+								<MudText Typo="Typo.body2" Class="text-muted">
+									<strong>Author:</strong> @CurrentPhoto.Author
+								</MudText>
+							}
                         </div>
                     </div>
                 </MudPaper>
@@ -101,24 +106,25 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+	[CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
 
-    [Parameter] public List<Photo> Photos { get; set; } = [];
-    [Parameter] public int InitialIndex { get; set; }
-    [Parameter] public int CurrentPage { get; set; } = 1;
-    [Parameter] public int TotalPages { get; set; } = 1;
+	[Parameter] public List<Photo> Photos { get; set; } = [];
+	[Parameter] public int InitialIndex { get; set; }
+	[Parameter] public int CurrentPage { get; set; } = 1;
+	[Parameter] public int TotalPages { get; set; } = 1;
 
-    [Inject] private IStorageService StorageService { get; set; } = null!;
+	[Inject] private IStorageService StorageService { get; set; } = null!;
 	[Inject] private ISnackbar Snackbar { get; set; } = null!;
-    [Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
+	[Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
+	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 
-    private int CurrentIndex { get; set; }
-    private bool IsLoadingPage { get; set; }
+	private int CurrentIndex { get; set; }
+	private bool IsLoadingPage { get; set; }
 
-    private Photo CurrentPhoto
-        => Photos.Count > 0 && CurrentIndex < Photos.Count
-            ? Photos[CurrentIndex]
-            : new Photo
+	private Photo CurrentPhoto
+		=> Photos.Count > 0 && CurrentIndex < Photos.Count
+			? Photos[CurrentIndex]
+			: new Photo
             {
                 Id = Guid.NewGuid().ToString(),
                 FileName = "",
@@ -127,8 +133,14 @@
                 FileSize = 0
             };
 
-    protected override void OnInitialized()
-        => CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
+	private bool _showAuthorInfo = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_showAuthorInfo = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAuthorInfo);
+
+		CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
+	}
 
     private void NextPhoto()
     {

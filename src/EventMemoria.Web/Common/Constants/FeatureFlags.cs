@@ -2,8 +2,8 @@ namespace EventMemoria.Web.Common.Constants;
 
 public static class FeatureFlags
 {
-    /// <summary>
-    /// Enables the photo download functionality.
-    /// </summary>
-    public const string EnableDownload = nameof(EnableDownload);
+    public const string EnableDownloadPage = nameof(EnableDownloadPage);
+    public const string EnableQrCodePage = nameof(EnableQrCodePage);
+    public const string EnablePhotoUpload = nameof(EnablePhotoUpload);
+    public const string ShowAuthorInfo = nameof(ShowAuthorInfo);
 }

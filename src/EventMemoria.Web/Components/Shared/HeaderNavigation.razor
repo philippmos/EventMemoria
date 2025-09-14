@@ -1,5 +1,7 @@
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
 @using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
 
 <MudChipSet T="string" Class="header__navigation-chipset" SelectionMode="SelectionMode.SingleSelection">
 
@@ -17,14 +19,27 @@
 
 @code {
 	[Inject] private NavigationManager Navigation { get; set; } = null!;
+	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 
 	private string CurrentUri => Navigation.Uri;
 
-	private IEnumerable<NavigationElement> NavigationElements => new List<NavigationElement>
+	private List<NavigationElement> NavigationElements = new List<NavigationElement>
 	{
-		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary),
-		new NavigationElement("Download", "/download", Icons.Material.Filled.Download)
+		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary)
 	};
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableDownloadPage))
+		{
+			NavigationElements.Add(new NavigationElement("Download", "/download", Icons.Material.Filled.Download));
+		}
+
+		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
+		{
+			NavigationElements.Add(new NavigationElement("QR Code", "/qrcode", Icons.Material.Filled.QrCode));
+		}
+	}
 
 	private bool IsCurrentPage(string page)
 	{
