@@ -2,7 +2,9 @@
 FROM node:22-alpine AS frontend-build
 WORKDIR /src
 
-RUN npm install -g bun
+RUN apk add --no-cache curl bash
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
 
 COPY client/package.json client/bun.lock ./client/
 RUN cd client && bun install

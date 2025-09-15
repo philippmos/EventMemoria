@@ -45,6 +45,12 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
@@ -52,3 +58,4 @@ jobs:
         file: ./src/EventMemoria.Web/Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         tags: ${{ vars.DOCKER_HUB_REPO_NAME }}:${{ github.run_id }}
+        platforms: linux/amd64,linux/arm64
