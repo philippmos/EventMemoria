@@ -13,6 +13,8 @@ public static class PmoWebApp
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddKeyPerFile("/run/secrets", optional: true);
+
         builder.Services.AddHttpClient();
 
         builder.Services.AddMudServices();
