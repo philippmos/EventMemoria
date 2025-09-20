@@ -41,6 +41,13 @@
         height: 100%;
         object-fit: cover;
         transition: all 0.3s ease;
+
+        video {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
     }
 
     &__filename {

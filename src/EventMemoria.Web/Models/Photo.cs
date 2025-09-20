@@ -9,4 +9,12 @@ public class Photo
     public required long FileSize { get; init; }
     public string? Alt { get; init; }
     public string Author { get; set; } = string.Empty;
+    public MediaType MediaType { get; init; } = MediaType.Image;
+    public string? ThumbnailUrl { get; init; }
+}
+
+public enum MediaType
+{
+    Image,
+    Video
 }

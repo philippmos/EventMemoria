@@ -7,6 +7,7 @@ public static class ApplicationConstants
     public static class FileUpload
     {
         public const long MaxFileSizeInBytes = 100 * 1024 * 1024; // 100MB
+        public const long MaxVideoFileSizeInBytes = 1 * 1024 * 1024 * 1024; // 1GB
         public const int MaxFileCountNative = 1000;
         public const int MaxFileCount = 100;
 
@@ -24,6 +25,7 @@ public static class ApplicationConstants
         public const string Author = "Author";
         public const string FileName = "FileName";
         public const string UploadedAt = "UploadedAt";
+        public const string MediaType = "MediaType";
     }
 
     public static class Pagination

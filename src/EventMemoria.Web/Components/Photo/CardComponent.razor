@@ -5,7 +5,7 @@
     <MudCard Class="photo-card">
         <MudCardContent Class="photo-card__content pa-1">
             <div class="photo-card__image-container"
-                 style="height: @(GetPhotoContainerHeight())px;"
+                 style="height: @(GetPhotoContainerHeight())px; position: relative;"
                  @onclick="@(() => OnPhotoClicked.InvokeAsync(Photo))">
 
                 @if (!IsPhotoLoaded)
@@ -15,17 +15,46 @@
                     </div>
                 }
 
-                <MudImage
-                    Src="@Photo.Url"
-                    Alt="@(Photo.Alt ?? "Foto")"
-                    ObjectFit="ObjectFit.Cover"
-                    Class="photo-card__image"
-                    Style="@GetPhotoOpacityStyle()"
-                    @onload="@OnPhotoLoadAsync" />
+                @if (Photo.MediaType == MediaType.Video)
+                {
+                    <video class="photo-card__image" 
+                           style="@GetPhotoOpacityStyle()" 
+                           preload="metadata"
+                           muted
+                           @onloadedmetadata="@OnPhotoLoadAsync">
+                        <source src="@Photo.Url" type="video/mp4" />
+                        <source src="@Photo.Url" type="video/webm" />
+                        <source src="@Photo.Url" type="video/ogg" />
+                    </video>
+                }
+                else
+                {
+                    <MudImage
+                        Src="@Photo.Url"
+                        Alt="@GetAltText()"
+                        ObjectFit="ObjectFit.Cover"
+                        Class="photo-card__image"
+                        Style="@GetPhotoOpacityStyle()"
+                        @onload="@OnPhotoLoadAsync" />
+                }
+
+                @if (Photo.MediaType == MediaType.Video)
+                {
+                    <div class="video-overlay" style="@GetVideoOverlayStyle()">
+                        <MudIcon Icon="@Icons.Material.Filled.PlayArrow" 
+                                Style="font-size: 2rem; color: white; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 8px;" />
+                    </div>
+                }
             </div>
 
             <MudText Typo="Typo.caption" Class="photo-card__filename mt-1 text-truncate">
                 @PhotoGridService.GetShortFileName(Photo.FileName)
+                @if (Photo.MediaType == MediaType.Video)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.VideoFile" 
+                            Size="Size.Small" 
+                            Style="margin-left: 4px; vertical-align: text-bottom;" />
+                }
             </MudText>
         </MudCardContent>
     </MudCard>
@@ -45,6 +74,14 @@
 
     private string GetPhotoOpacityStyle()
         => IsPhotoLoaded ? "opacity: 1;" : "opacity: 0;";
+
+    private string GetAltText()
+        => Photo.MediaType == MediaType.Video ? "Video" : (Photo.Alt ?? "Foto");
+
+    private string GetVideoOverlayStyle()
+        => IsPhotoLoaded 
+            ? "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 1;"
+            : "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0;";
 
     private async Task OnPhotoLoadAsync()
     {

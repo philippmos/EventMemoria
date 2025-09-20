@@ -1,0 +1,18 @@
+.video {
+    &-overlay {
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    &-indicator {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+}

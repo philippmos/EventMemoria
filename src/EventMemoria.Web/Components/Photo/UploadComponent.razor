@@ -1,4 +1,5 @@
 @using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Helpers
 @using EventMemoria.Web.Services.Interfaces
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.FeatureManagement
@@ -10,7 +11,7 @@
 				  Style="background: linear-gradient(135deg, #A86C6C 0%, #A86C6C 100%); position: relative; border-radius: 8px;">
 
 			<InputFile multiple
-					   accept="image/*"
+					   accept="@AcceptedContentTypes"
 					   OnChange="@HandleMultiFileUploadAsync"
 					   disabled="@(IsUploading || string.IsNullOrWhiteSpace(UserName))"
 					   style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1;" />
@@ -39,7 +40,7 @@
 						Hochladen
 					</MudText>
 					<MudText Typo="Typo.caption" Class="mt-1" Style="color: rgba(255,255,255,0.8); text-align: center;">
-						Mehrere Dateien unterstützt
+						Bilder und Videos unterstützt (max. @ApplicationConstants.FileUpload.MaxFileCount Dateien auf einmal)
 					</MudText>
 				}
 			}
@@ -64,6 +65,7 @@
 
 	private bool IsUploading { get; set; }
 	private string? UserName { get; set; }
+	private string? AcceptedContentTypes { get; set; }
 
 	private bool _hasRendered;
 	private string _uploadProgress = string.Empty;
@@ -73,8 +75,9 @@
 	protected override async Task OnInitializedAsync()
 	{
 		_isFeatureEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.EnablePhotoUpload);
-	}
 
+		AcceptedContentTypes = await GetAcceptedContentTypesAsync();
+	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -125,7 +128,7 @@
 			_uploadProgress = $"Verarbeite Datei {i + 1} von {files.Count}...";
 			StateHasChanged();
 
-			var validationResult = FileValidationService.ValidateFile(file);
+			var validationResult = await FileValidationService.ValidateFileAsync(file);
 
 			if (!validationResult.IsValid)
 			{
@@ -136,7 +139,8 @@
 			var result = await UploadService.ProcessFileAsync(file, UserName);
 			uploadResults.Add(result);
 
-			Snackbar.Add($"Foto {file.Name} erfolgreich hochgeladen", Severity.Success);
+			var fileType = MediaHelper.IsVideoFile(file.ContentType) ? "Video" : "Foto";
+			Snackbar.Add($"{fileType} {file.Name} erfolgreich hochgeladen", Severity.Success);
 
 			if (OnPhotosUploaded.HasDelegate)
 			{
@@ -160,7 +164,7 @@
 
 		if (successCount > 1)
 		{
-			Snackbar.Add($"{successCount} Foto(s) erfolgreich hochgeladen", Severity.Success);
+			Snackbar.Add($"{successCount} Medien erfolgreich hochgeladen", Severity.Success);
 
 			if (OnPhotosUploaded.HasDelegate)
 			{
@@ -177,5 +181,17 @@
 		{
 			Snackbar.Add($"Und {failures.Count - 3} weitere Fehler...", Severity.Warning);
 		}
+	}
+
+	private async Task<string> GetAcceptedContentTypesAsync()
+	{
+		List<string> imageTypes = ["image/*"];
+
+		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableVideoUpload))
+		{
+			imageTypes.Add("video/*");
+		}
+
+		return string.Join(',', imageTypes);
 	}
 }

@@ -1,6 +1,8 @@
+using EventMemoria.Web.Models;
+
 namespace EventMemoria.Web.Helpers;
 
-public static class PhotoHelper
+public static class MediaHelper
 {
     public static string GetFileNameWithoutExtension(string fileName)
         => Path.GetFileNameWithoutExtension(fileName).ToLowerInvariant();
@@ -17,4 +19,13 @@ public static class PhotoHelper
             _ => $"{sizeInBytes / (1024 * 1024):F1} MB"
         };
     }
+
+    public static bool IsImageFile(string contentType)
+        => contentType.StartsWith(
+            MediaType.Image.ToString(),
+            StringComparison.InvariantCultureIgnoreCase);
+    public static bool IsVideoFile(string contentType)
+        => contentType.StartsWith(
+            MediaType.Video.ToString(),
+            StringComparison.InvariantCultureIgnoreCase);
 }
