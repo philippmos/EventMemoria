@@ -94,4 +94,25 @@
     transition: all $transition-fast;
     border-radius: $border-radius-sm;
   }
+
+  &__video-container {
+      position: relative;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    video {
+      background-color: #000;
+    }
+  }
+
+  &__main-video {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: $border-radius-md;
+
+    @include shadow-strong;
+  }
 }

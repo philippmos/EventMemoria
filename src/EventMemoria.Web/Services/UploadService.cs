@@ -15,16 +15,26 @@ public class UploadService(
     {
         try
         {
-            await using var fileStream = file.OpenReadStream(ApplicationConstants.FileUpload.MaxFileSizeInBytes);
+            var isVideo = MediaHelper.IsVideoFile(file.ContentType);
+
+            await using var fileStream = file.OpenReadStream(GetMaxFileSize(isVideo));
             using var memoryStream = new MemoryStream();
             await fileStream.CopyToAsync(memoryStream);
 
             var fileBytes = memoryStream.ToArray();
 
-            await CreateAndUploadThumbnailAsync(fileBytes, file.Name, file.ContentType, userName);
+            if (isVideo)
+            {
+                using var uploadStream = new MemoryStream(fileBytes);
+                await storageService.UploadVideoAsync(uploadStream, file.Name, file.ContentType, userName);
+            }
+            else
+            {
+                await CreateAndUploadThumbnailAsync(fileBytes, file.Name, file.ContentType, userName);
 
-            using var uploadStream = new MemoryStream(fileBytes);
-            await storageService.UploadFullSizeAsync(uploadStream, file.Name, file.ContentType, userName);
+                using var uploadStream = new MemoryStream(fileBytes);
+                await storageService.UploadFullSizeAsync(uploadStream, file.Name, file.ContentType, userName);
+            }
 
             return UploadResult.Success(file.Name);
         }
@@ -51,7 +61,7 @@ public class UploadService(
 
             using var uploadStream = new MemoryStream(thumbnailBytes);
 
-            var thumbnailFileName = $"{PhotoHelper.GetFileNameWithoutExtension(fileName)}.{ApplicationConstants.FileUpload.Thumbnail.Format.ToString().ToLower()}";
+            var thumbnailFileName = $"{MediaHelper.GetFileNameWithoutExtension(fileName)}.{ApplicationConstants.FileUpload.Thumbnail.Format.ToString().ToLower()}";
             await storageService.UploadThumbnailAsync(uploadStream, thumbnailFileName, contentType, userName);
         }
         catch (Exception ex)
@@ -59,4 +69,9 @@ public class UploadService(
             logger.LogError(ex, "Error creating thumbnail for {FileName}", fileName);
         }
     }
+
+    private static long GetMaxFileSize(bool isVideo)
+        => isVideo 
+            ? ApplicationConstants.FileUpload.MaxVideoFileSizeInBytes 
+            : ApplicationConstants.FileUpload.MaxFileSizeInBytes;
 }

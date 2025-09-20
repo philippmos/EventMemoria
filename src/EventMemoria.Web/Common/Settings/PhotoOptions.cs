@@ -11,4 +11,5 @@ public record StorageContainer
 {
     public string FullSize { get; init; } = string.Empty;
     public string Thumbnails { get; init; } = string.Empty;
+    public string Videos { get; init; } = string.Empty;
 }

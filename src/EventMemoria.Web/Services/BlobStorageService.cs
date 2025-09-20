@@ -34,14 +34,24 @@ public class BlobStorageService(
             author);
     }
 
+    public async Task<string> UploadVideoAsync(Stream fileStream, string fileName, string? contentType = null, string? author = null)
+    {
+        return await UploadFileAsync(
+            photoOptions.Value.StorageContainer.Videos,
+            fileStream,
+            fileName,
+            contentType,
+            author,
+            isVideo: true);
+    }
 
-    private async Task<string> UploadFileAsync(string containerName, Stream fileStream, string fileName, string? contentType = null, string? author = null)
+    private async Task<string> UploadFileAsync(string containerName, Stream fileStream, string fileName, string? contentType = null, string? author = null, bool isVideo = false)
     {
         try
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
-            var uniqueFileName = $"{Guid.NewGuid()}{PhotoHelper.GetFileExtension(fileName)}";
+            var uniqueFileName = $"{Guid.NewGuid()}{MediaHelper.GetFileExtension(fileName)}";
             var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
             var blobHttpHeaders = new BlobHttpHeaders();
@@ -50,6 +60,8 @@ public class BlobStorageService(
                 blobHttpHeaders.ContentType = contentType;
             }
 
+            var mediaType = isVideo ? "Video" : "Image";
+
             var uploadOptions = new BlobUploadOptions
             {
                 HttpHeaders = blobHttpHeaders,
@@ -57,13 +69,14 @@ public class BlobStorageService(
                 {
                     { ApplicationConstants.ImageTags.Author, SanitizingHelper.SanitizeValue(author ?? "Anonymous") },
                     { ApplicationConstants.ImageTags.FileName, SanitizingHelper.SanitizeValue(fileName) },
-                    { ApplicationConstants.ImageTags.UploadedAt, DateTime.UtcNow.ToString("o") }
+                    { ApplicationConstants.ImageTags.UploadedAt, DateTime.UtcNow.ToString("o") },
+                    { ApplicationConstants.ImageTags.MediaType, mediaType }
                 }
             };
 
             await blobClient.UploadAsync(fileStream, uploadOptions);
 
-            logger.LogInformation("File {FileName} successfully uploaded as {BlobName}", fileName, uniqueFileName);
+            logger.LogInformation("{MediaType} {FileName} successfully uploaded as {BlobName}", mediaType, fileName, uniqueFileName);
 
             return uniqueFileName;
         }
@@ -76,61 +89,78 @@ public class BlobStorageService(
 
     public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24)
     {
-        var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
-
         try
         {
-            var containerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
+            var allMediaItems = new List<(BlobItem blob, BlobClient client, bool isVideo)>();
 
-            if (!await containerClient.ExistsAsync())
+            var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
+            var thumbnailContainerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
+            if (await thumbnailContainerClient.ExistsAsync())
             {
-                return new PagedResult<Photo>();
+                await foreach (var blobItem in thumbnailContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                {
+                    var blobClient = thumbnailContainerClient.GetBlobClient(blobItem.Name);
+                    allMediaItems.Add((blobItem, blobClient, false));
+                }
             }
 
-            var allBlobs = new List<BlobItem>();
-
-            await foreach (var blobItem in containerClient.GetBlobsAsync(traits: BlobTraits.All))
+            var videosContainer = photoOptions.Value.StorageContainer.Videos;
+            var videosContainerClient = blobServiceClient.GetBlobContainerClient(videosContainer);
+            if (await videosContainerClient.ExistsAsync())
             {
-                allBlobs.Add(blobItem);
+                await foreach (var blobItem in videosContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                {
+                    var blobClient = videosContainerClient.GetBlobClient(blobItem.Name);
+                    allMediaItems.Add((blobItem, blobClient, true));
+                }
             }
 
-            allBlobs = allBlobs.OrderByDescending(b => b.Properties.LastModified).ToList();
+            allMediaItems = allMediaItems
+                .OrderByDescending(item => item.blob.Properties.LastModified)
+                .ToList();
 
-            var totalCount = allBlobs.Count;
+            var totalCount = allMediaItems.Count;
             var skip = (page - 1) * pageSize;
-            var pagedBlobs = allBlobs.Skip(skip).Take(pageSize).ToList();
+            var pagedItems = allMediaItems.Skip(skip).Take(pageSize).ToList();
 
             var photos = new List<Photo>();
 
-            foreach (var blobItem in pagedBlobs)
+            foreach (var (blobItem, blobClient, isVideo) in pagedItems)
             {
-                var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                var photo = CreatePhotoFromBlobItem(blobItem, blobClient);
+                var photo = CreatePhotoFromBlobItem(blobItem, blobClient, isVideo);
                 photos.Add(photo);
             }
 
-            logger.LogInformation("Retrieved page {Page} with {Count} photos from container {ContainerName}. Total: {TotalCount}",
-                page, photos.Count, thumbnailContainer, totalCount);
+            logger.LogInformation("Retrieved page {Page} with {Count} media items (Images: {ImageCount}, Videos: {VideoCount}). Total: {TotalCount}",
+                page, photos.Count, 
+                photos.Count(p => p.MediaType == MediaType.Image),
+                photos.Count(p => p.MediaType == MediaType.Video),
+                totalCount);
 
             return new PagedResult<Photo>(photos, page, pageSize, totalCount);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting paged photos from container {ContainerName}", thumbnailContainer);
+            logger.LogError(ex, "Error getting paged media items");
             throw;
         }
     }
 
-    private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient)
+    private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient, bool isVideo)
     {
-        return new Photo
+        var mediaTypeFromTag = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.MediaType).Value;
+        var actualIsVideo = isVideo || mediaTypeFromTag == "Video";
+
+        return new ()
         {
             Id = Guid.NewGuid().ToString(),
             FileName = blobItem.Name,
             Url = blobClient.Uri.ToString(),
             UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
             FileSize = blobItem.Properties.ContentLength ?? 0,
-            Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value
+            Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value,
+            MediaType = actualIsVideo ? MediaType.Video : MediaType.Image,
+            ThumbnailUrl = actualIsVideo ? blobClient.Uri.ToString() : null
         };
     }
 }

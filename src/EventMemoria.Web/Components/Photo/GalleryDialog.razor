@@ -48,9 +48,25 @@
                                   Disabled="@(!CanNavigateLeft())"
                                   Class="photo-gallery__nav-button photo-gallery__nav-button--left" />
 
-                    <MudImage Src="@CurrentPhoto.Url"
-                             Alt="@CurrentPhoto.Alt"
-                             Class="photo-gallery__main-image" />
+                    @if (CurrentPhoto.MediaType == MediaType.Video)
+                    {
+                        <div class="photo-gallery__video-container">
+                            <video controls
+                                   class="photo-gallery__main-video"
+                                   preload="metadata">
+                                <source src="@CurrentPhoto.Url" type="video/mp4" />
+                                <source src="@CurrentPhoto.Url" type="video/webm" />
+                                <source src="@CurrentPhoto.Url" type="video/ogg" />
+                                Ihr Browser unterstützt die Video-Wiedergabe nicht.
+                            </video>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudImage Src="@CurrentPhoto.Url"
+                                 Alt="@CurrentPhoto.Alt"
+                                 Class="photo-gallery__main-image" />
+                    }
 
                     <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
                                   Color="Color.Primary"
@@ -64,13 +80,22 @@
                     <div class="photo-gallery__info-content">
                         <MudText Typo="Typo.body1" Class="photo-gallery__filename">
                             <strong>@CurrentPhoto.FileName</strong>
+                            @if (CurrentPhoto.MediaType == MediaType.Video)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.VideoFile" 
+                                        Size="Size.Small" 
+                                        Style="margin-left: 8px; vertical-align: text-bottom;" />
+                            }
                         </MudText>
                         <div class="photo-gallery__meta-info">
                             <MudText Typo="Typo.body2" Class="text-muted">
-                                @PhotoHelper.FormatFileSize(CurrentPhoto.FileSize)
+                                @MediaHelper.FormatFileSize(CurrentPhoto.FileSize)
                             </MudText>
                             <MudText Typo="Typo.body2" Class="text-muted">
                                 @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">
+                                @(CurrentPhoto.MediaType == MediaType.Video ? "Video" : "Bild")
                             </MudText>
 
 							@if (_showAuthorInfo)
@@ -91,11 +116,29 @@
                             var index = i;
                             <MudPaper Class="@($"{GetThumbnailClass(index)} photo-gallery__thumbnail")"
                                      @onclick="() => SetCurrentPhoto(index)">
-                                <MudImage Src="@Photos[index].Url"
-                                         Alt="Thumbnail"
-                                         Width="60"
-                                         Height="60"
-                                         ObjectFit="ObjectFit.Cover" />
+                                <div style="position: relative;">
+                                    @if (Photos[index].MediaType == MediaType.Video)
+                                    {
+                                        <video width="60" height="60" 
+                                               style="object-fit: cover; border-radius: 4px;"
+                                               preload="metadata"
+                                               muted>
+                                            <source src="@Photos[index].Url" type="video/mp4" />
+                                            <source src="@Photos[index].Url" type="video/webm" />
+                                            <source src="@Photos[index].Url" type="video/ogg" />
+                                        </video>
+                                        <MudIcon Icon="@Icons.Material.Filled.PlayArrow" 
+                                                Style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 2px; font-size: 1rem;" />
+                                    }
+                                    else
+                                    {
+                                        <MudImage Src="@Photos[index].Url"
+                                                 Alt="Thumbnail"
+                                                 Width="60"
+                                                 Height="60"
+                                                 ObjectFit="ObjectFit.Cover" />
+                                    }
+                                </div>
                             </MudPaper>
                         }
                     </div>
@@ -124,7 +167,7 @@
 	private Photo CurrentPhoto
 		=> Photos.Count > 0 && CurrentIndex < Photos.Count
 			? Photos[CurrentIndex]
-			: new Photo
+			: new ()
             {
                 Id = Guid.NewGuid().ToString(),
                 FileName = "",
