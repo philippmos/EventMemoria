@@ -10,9 +10,7 @@ using Microsoft.FeatureManagement;
 
 namespace EventMemoria.Web.Services;
 
-public class FileValidationService(
-    IOptions<PhotoOptions> photoOptions,
-    IFeatureManager featureManager) : IFileValidationService
+public class FileValidationService(IFeatureManager featureManager) : IFileValidationService
 {
     public async Task<ValidationResult> ValidateFileAsync(IBrowserFile? file)
     {
@@ -41,12 +39,6 @@ public class FileValidationService(
             var maxSizeMb = maxSize / (1024 * 1024);
             var fileType = isVideo ? "Video" : "Bild";
             return ValidationResult.Failure($"{fileType} '{file.Name}' ist zu groß (max. {maxSizeMb} MB)");
-        }
-
-        if (photoOptions.Value.AllowedFileTypes.Any() &&
-            !photoOptions.Value.AllowedFileTypes.Contains(extension))
-        {
-            return ValidationResult.Failure($"Dateityp '{extension}' wird nicht unterstützt");
         }
 
         return ValidationResult.Success();
