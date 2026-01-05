@@ -2,6 +2,7 @@
 
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
@@ -13,22 +14,49 @@
 	
 <div class="qr-code-container download-page-container">
 	<MudStack Spacing="4" AlignItems="AlignItems.Center" Class="download-content-stack">
-
-	</MudStack>
+        @foreach(var subfolder in _photosBySubfolder)
+        {
+            <ul>
+                @foreach(var item in subfolder.Value)
+                {
+                    <li>
+                        @item
+                    </li>
+                }
+            </ul>
+        }
+        </MudStack>
 </div>
 
 @code {
-	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
-	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
-	[Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
-	protected override async Task OnInitializedAsync()
-	{
-		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableGalleryPage))
-		{
-			NavigationManager.NavigateTo("/", true);
-			return;
-		}
+    [Inject] private IStorageService StorageService { get; set; } = null!;
+
+
+    private Dictionary<string, List<string>> _photosBySubfolder = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableGalleryPage))
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
+        var subfolders = (await StorageService.GetGallerySubFoldersAsync()).ToList();
+
+
+
+        foreach(var subfolder in subfolders)
+        {
+            var photos = await StorageService.GetGalleryFolderItemsAsync(subfolder);
+
+            _photosBySubfolder[subfolder] = photos?.Select(x => x.FileName).ToList() ?? new List<string>();
+        }
+
 	}
 
 }

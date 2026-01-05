@@ -148,7 +148,14 @@ public class BlobStorageService(
 
     private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient, bool isVideo)
     {
-        var mediaTypeFromTag = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.MediaType).Value;
+        var mediaTypeFromTag = "Image";
+
+        try
+        {
+            mediaTypeFromTag = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.MediaType).Value;
+        }
+        catch (Exception) { }
+
         var actualIsVideo = isVideo || mediaTypeFromTag == "Video";
 
         return new ()
@@ -158,9 +165,101 @@ public class BlobStorageService(
             Url = blobClient.Uri.ToString(),
             UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
             FileSize = blobItem.Properties.ContentLength ?? 0,
-            Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value,
+            Author = blobItem.Tags?.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value ?? string.Empty,
             MediaType = actualIsVideo ? MediaType.Video : MediaType.Image,
             ThumbnailUrl = actualIsVideo ? blobClient.Uri.ToString() : null
         };
+    }
+
+    public async Task<IEnumerable<string>> GetGallerySubFoldersAsync()
+    {
+        try
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
+
+            if (!await containerClient.ExistsAsync())
+            {
+                logger.LogWarning("Container prod-gallery does not exist when listing top-level folders");
+                return [];
+            }
+
+            var folderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            await foreach (var item in containerClient.GetBlobsByHierarchyAsync(delimiter: "/"))
+            {
+                if (!item.IsPrefix || string.IsNullOrWhiteSpace(item.Prefix))
+                {
+                    continue;
+                }
+
+                var prefix = item.Prefix.TrimEnd('/');
+
+                if (!string.IsNullOrEmpty(prefix))
+                {
+                    folderNames.Add(prefix);
+                }
+            }
+
+            var orderedFolders = folderNames
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            logger.LogInformation("Retrieved {Count} top-level folders from gallery-container", orderedFolders.Count);
+
+            return orderedFolders;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error listing top-level folders from gallery-container");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<Photo>> GetGalleryFolderItemsAsync(string folderName)
+    {
+        if (string.IsNullOrWhiteSpace(folderName))
+        {
+            throw new ArgumentException("Folder name is required", nameof(folderName));
+        }
+
+        try
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
+
+            if (!await containerClient.ExistsAsync())
+            {
+                logger.LogWarning("Container prod-gallery does not exist when listing items for folder {Folder}", folderName);
+                return [];
+            }
+
+            var prefix = $"{folderName.TrimEnd('/')}/";
+            var mediaItems = new List<Photo>();
+
+            await foreach (var item in containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/", traits: BlobTraits.All))
+            {
+                if (item is null || item.IsPrefix)
+                {
+                    continue;
+                }
+
+                var blobItem = item.Blob;
+                var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                var photo = CreatePhotoFromBlobItem(blobItem, blobClient, false);
+                mediaItems.Add(photo);
+            }
+
+            mediaItems = mediaItems
+                .OrderByDescending(m => m.UploadDate)
+                .ToList();
+
+            logger.LogInformation("Retrieved {Count} media items from folder {Folder}", mediaItems.Count, folderName);
+
+            return mediaItems;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error listing media items for folder {Folder}", folderName);
+            throw;
+        }
     }
 }
