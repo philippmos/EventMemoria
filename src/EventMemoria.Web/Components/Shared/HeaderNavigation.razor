@@ -18,27 +18,34 @@
 </MudChipSet>
 
 @code {
-	[Inject] private NavigationManager Navigation { get; set; } = null!;
-	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 
-	private string CurrentUri => Navigation.Uri;
+    private string CurrentUri => Navigation.Uri;
 
-	private List<NavigationElement> NavigationElements = new List<NavigationElement>
-	{
-		new NavigationElement("Galerie", "/", Icons.Material.Filled.PhotoLibrary)
-	};
+    private List<NavigationElement> NavigationElements = new List<NavigationElement>();
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableSubscribePage))
+		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableUploadPage))
 		{
-			NavigationElements.Add(new NavigationElement("Abonnieren", "/subscribe", Icons.Material.Filled.Newspaper));
-		}
+            NavigationElements.Add(new NavigationElement("Upload", "/", Icons.Material.Filled.PhotoLibrary));
+        }
 
-		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
-		{
-			NavigationElements.Add(new NavigationElement("QR Code", "/qrcode", Icons.Material.Filled.QrCode));
-		}
+        if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableSubscribePage))
+        {
+            NavigationElements.Add(new NavigationElement("Abonnieren", "/subscribe", Icons.Material.Filled.Newspaper));
+        }
+
+        if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
+        {
+            NavigationElements.Add(new NavigationElement("QR Code", "/qrcode", Icons.Material.Filled.QrCode));
+        }
+
+        if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableGalleryPage))
+        {
+            NavigationElements.Add(new NavigationElement("Gallerie", "/gallery", Icons.Material.Filled.PhotoLibrary));
+        }
 	}
 
 	private bool IsCurrentPage(string page)

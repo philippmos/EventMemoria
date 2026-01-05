@@ -1,7 +1,9 @@
 @page "/"
 
+@using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Components.NameModal
 @using EventMemoria.Web.Components.Photo
+@using Microsoft.FeatureManagement
 
 @rendermode InteractiveServer
 
@@ -17,9 +19,21 @@
                         OnPhotosLoaded="@OnPhotosLoaded" />
 
 @code {
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
     private VirtualizedGrid? _virtualizedGrid;
     private UploadComponent? _uploadComponent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableUploadPage))
+        {
+            return;
+        }
+    }
+
+
 
     private async Task RefreshVirtualizedGridAsync()
     {

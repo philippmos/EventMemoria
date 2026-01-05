@@ -13,6 +13,7 @@ public static class PmoWebApp
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("appsettings.dev.json", optional: true, reloadOnChange: true);
         builder.Configuration.AddKeyPerFile("/run/secrets", optional: true);
 
         builder.Services.AddHttpClient();

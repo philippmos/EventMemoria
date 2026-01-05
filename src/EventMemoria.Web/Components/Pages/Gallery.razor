@@ -1,0 +1,34 @@
+@page "/gallery"
+
+@using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
+
+@rendermode InteractiveServer
+
+<CustomPageTitle Value="Gallerie" />
+
+<HeaderComponent />
+	
+<div class="qr-code-container download-page-container">
+	<MudStack Spacing="4" AlignItems="AlignItems.Center" Class="download-content-stack">
+
+	</MudStack>
+</div>
+
+@code {
+	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+	[Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableGalleryPage))
+		{
+			NavigationManager.NavigateTo("/", true);
+			return;
+		}
+	}
+
+}
