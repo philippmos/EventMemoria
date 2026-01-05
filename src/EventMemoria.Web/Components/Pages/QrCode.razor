@@ -66,6 +66,12 @@ else
 	private MarkupString? _svgCode;
 	private string? _svgContent;
 
+	private System.Drawing.Bitmap CreateLogo()
+	{
+		var logo = new System.Drawing.Bitmap(100, 100);
+		return logo;
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
@@ -79,8 +85,9 @@ else
 		var qrCodeDate = qrCodeGenerator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.Q);
 
 		var qrCode = new SvgQRCode(qrCodeDate);
+		var logo = CreateLogo();
 
-		_svgContent = qrCode.GetGraphic(20, darkColorHex: "#a86c6c", lightColorHex: "#ffffff", sizingMode: SvgQRCode.SizingMode.ViewBoxAttribute);
+		_svgContent = qrCode.GetGraphic(20, darkColorHex: "#a86c6c", lightColorHex: "#ffffff", sizingMode: SvgQRCode.SizingMode.ViewBoxAttribute, logo: new SvgQRCode.SvgLogo(logo));
 		_svgCode = new MarkupString(_svgContent);
 
 		Logger.LogInformation("QR Code generated for URL: {Url}", targetUrl);

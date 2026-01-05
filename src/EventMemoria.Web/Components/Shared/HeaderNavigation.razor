@@ -30,9 +30,9 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableDownloadPage))
+		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableSubscribePage))
 		{
-			NavigationElements.Add(new NavigationElement("Download", "/download", Icons.Material.Filled.Download));
+			NavigationElements.Add(new NavigationElement("Abonnieren", "/subscribe", Icons.Material.Filled.Newspaper));
 		}
 
 		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableQrCodePage))
