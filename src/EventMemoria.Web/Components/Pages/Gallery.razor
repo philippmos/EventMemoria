@@ -18,7 +18,8 @@
 
 @if (!string.IsNullOrWhiteSpace(_subItem))
 {
-    <VirtualizedGrid @ref="_virtualizedGrid"
+    <VirtualizedGrid @key="@_subItem"
+                     @ref="_virtualizedGrid"
                      OnPhotosLoaded="@OnPhotosLoaded"
                      GalleryFolderName="@_subItem" />
 }
