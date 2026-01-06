@@ -168,7 +168,7 @@ public class BlobStorageService(
 
             if (!await containerClient.ExistsAsync())
             {
-                logger.LogWarning("Container prod-gallery does not exist when listing top-level folders");
+                logger.LogWarning("Container {ContainerName} does not exist when listing top-level folders", containerClient.Name);
                 return [];
             }
 
