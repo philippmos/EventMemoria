@@ -94,9 +94,6 @@
                             <MudText Typo="Typo.body2" Class="text-muted">
                                 @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
                             </MudText>
-                            <MudText Typo="Typo.body2" Class="text-muted">
-                                @(CurrentPhoto.MediaType == MediaType.Video ? "Video" : "Bild")
-                            </MudText>
 
 							@if (_showAuthorInfo)
 							{
@@ -104,6 +101,20 @@
 									<strong>Author:</strong> @CurrentPhoto.Author
 								</MudText>
 							}
+
+                            @if (_downloadEnabled)
+                            {
+                                <a href="@CurrentPhoto.Url"
+                                   style="text-decoration: none;"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Download"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   Variant="MudBlazor.Variant.Outlined"
+                                                   title="Download" />
+                                </a>
+                            }
                         </div>
                     </div>
                 </MudPaper>
@@ -149,25 +160,25 @@
 </MudDialog>
 
 @code {
-	[CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
 
-	[Parameter] public List<Photo> Photos { get; set; } = [];
-	[Parameter] public int InitialIndex { get; set; }
-	[Parameter] public int CurrentPage { get; set; } = 1;
-	[Parameter] public int TotalPages { get; set; } = 1;
+    [Parameter] public List<Photo> Photos { get; set; } = [];
+    [Parameter] public int InitialIndex { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalPages { get; set; } = 1;
 
-	[Inject] private IStorageService StorageService { get; set; } = null!;
-	[Inject] private ISnackbar Snackbar { get; set; } = null!;
-	[Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
-	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private IStorageService StorageService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 
-	private int CurrentIndex { get; set; }
-	private bool IsLoadingPage { get; set; }
+    private int CurrentIndex { get; set; }
+    private bool IsLoadingPage { get; set; }
 
-	private Photo CurrentPhoto
-		=> Photos.Count > 0 && CurrentIndex < Photos.Count
-			? Photos[CurrentIndex]
-			: new ()
+    private Photo CurrentPhoto
+        => Photos.Count > 0 && CurrentIndex < Photos.Count
+            ? Photos[CurrentIndex]
+            : new ()
             {
                 Id = Guid.NewGuid().ToString(),
                 FileName = "",
@@ -176,11 +187,13 @@
                 FileSize = 0
             };
 
-	private bool _showAuthorInfo = false;
+    private bool _showAuthorInfo = false;
+    private bool _downloadEnabled = false;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_showAuthorInfo = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAuthorInfo);
+    protected override async Task OnInitializedAsync()
+    {
+        _showAuthorInfo = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAuthorInfo);
+        _downloadEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.EnablePhotoDownload);
 
 		CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
 	}
