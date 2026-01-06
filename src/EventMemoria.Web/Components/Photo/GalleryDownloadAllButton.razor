@@ -20,8 +20,10 @@
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private ILogger<GalleryDownloadAllButton> Logger { get; set; } = null!;
 
     private string DownloadLink = string.Empty;
 
@@ -42,14 +44,29 @@
             return;
         }
 
+        var fileName = GetDownloadFileName();
+
         try
         {
-            await JsRuntime.InvokeVoidAsync("FileDownloader.downloadFile", DownloadLink, "photos.zip");
+            await JsRuntime.InvokeVoidAsync("FileDownloader.downloadFile", DownloadLink, fileName);
             Snackbar.Add("Download gestartet.", Severity.Success);
+            Logger.LogInformation("Photo archive download initiated from URL: {Url}", DownloadLink);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to initiate photo archive download from URL: {Url}", DownloadLink);
             Snackbar.Add("Download konnte nicht gestartet werden.", Severity.Warning);
         }
+    }
+
+    private string GetDownloadFileName()
+    {
+        var eventTitle = CustomizationOptions.Value.Title;
+        if (!string.IsNullOrWhiteSpace(eventTitle))
+        {
+            var sanitizedTitle = string.Join("_", eventTitle.Split(Path.GetInvalidFileNameChars()));
+            return $"{sanitizedTitle}_photos.zip";
+        }
+        return "photos.zip";
     }
 }
