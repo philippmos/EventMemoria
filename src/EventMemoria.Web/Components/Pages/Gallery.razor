@@ -2,7 +2,9 @@
 
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Components.Photo
 @using EventMemoria.Web.Services.Interfaces
+@using System.Linq
 @using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
@@ -11,32 +13,23 @@
 <CustomPageTitle Value="Gallerie" />
 
 <HeaderComponent />
-	
-<div class="qr-code-container download-page-container">
-	<MudStack Spacing="4" AlignItems="AlignItems.Center" Class="download-content-stack">
-        @foreach(var subfolder in _photosBySubfolder)
-        {
-            <ul>
-                @foreach(var item in subfolder.Value)
-                {
-                    <li>
-                        @item
-                    </li>
-                }
-            </ul>
-        }
-        </MudStack>
-</div>
+
+<GallerySubNavigation OnSubFolderChanged="@SetSubFolderAsync" />
+
+@if (!string.IsNullOrWhiteSpace(_subItem))
+{
+    <VirtualizedGrid @ref="_virtualizedGrid"
+                     OnPhotosLoaded="@OnPhotosLoaded"
+                     GalleryFolderName="@_subItem" />
+}
+
 
 @code {
-    [Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
-    [Inject] private IStorageService StorageService { get; set; } = null!;
-
-
-    private Dictionary<string, List<string>> _photosBySubfolder = new();
+    private string _subItem = string.Empty;
+    private VirtualizedGrid? _virtualizedGrid;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,18 +38,16 @@
             NavigationManager.NavigateTo("/", true);
             return;
         }
+    }
 
-        var subfolders = (await StorageService.GetGallerySubFoldersAsync()).ToList();
+    private async Task SetSubFolderAsync(string value)
+    {
+        _subItem = value;
+        await InvokeAsync(StateHasChanged);
+    }
 
-
-
-        foreach(var subfolder in subfolders)
-        {
-            var photos = await StorageService.GetGalleryFolderItemsAsync(subfolder);
-
-            _photosBySubfolder[subfolder] = photos?.Select(x => x.FileName).ToList() ?? new List<string>();
-        }
-
-	}
-
+    private void OnPhotosLoaded(List<Photo> photos)
+    {
+        StateHasChanged();
+    }
 }

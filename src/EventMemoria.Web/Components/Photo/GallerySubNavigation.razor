@@ -1,0 +1,52 @@
+@using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Helpers
+@using EventMemoria.Web.Services.Interfaces
+@using Microsoft.FeatureManagement
+
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    <MudStack Spacing="2" Class="pa-2">
+        <MudPaper Class="pa-3" Elevation="1">
+            <div class="d-flex flex-column">
+                <div class="grid-controls-container">
+                    <MudChipSet T="string"
+                                SelectedValue="@_selectedSubItem"
+                                SelectedValueChanged="@((string value) => OnSubFolderChanged.InvokeAsync(value))"
+                                Class="grid-controls-chipset">
+
+                        @foreach (var subfolder in _subfolders)
+                        {
+                            <MudChip T="string"
+                                     Value="@subfolder"
+                                     Color="Color.Default"
+                                     Variant="MudBlazor.Variant.Filled"
+                                     Size="Size.Medium"
+                                     Class="grid-controls-chip">
+                                @subfolder
+                            </MudChip>
+                        }
+                    </MudChipSet>
+                </div>
+            </div>
+        </MudPaper>
+    </MudStack>
+</MudContainer>
+
+
+
+@code {
+    [Parameter] public EventCallback<string> OnSubFolderChanged { get; set; }
+
+    [Inject] private IStorageService StorageService { get; set; } = null!;
+
+    private List<string> _subfolders = new();
+    private string? _selectedSubItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _subfolders = (await StorageService.GetGallerySubFoldersAsync()).ToList();
+        _selectedSubItem ??= _subfolders.FirstOrDefault();
+
+        await OnSubFolderChanged.InvokeAsync(_selectedSubItem);
+    }
+}

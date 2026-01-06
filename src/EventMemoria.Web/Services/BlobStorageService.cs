@@ -1,7 +1,9 @@
+using System.Web;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EventMemoria.Web.Common.Constants;
 using EventMemoria.Web.Common.Settings;
+using EventMemoria.Web.Extensions;
 using EventMemoria.Web.Helpers;
 using EventMemoria.Web.Models;
 using EventMemoria.Web.Services.Interfaces;
@@ -87,31 +89,58 @@ public class BlobStorageService(
         }
     }
 
-    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24)
+    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24, string? folderName = null)
     {
         try
         {
             var allMediaItems = new List<(BlobItem blob, BlobClient client, bool isVideo)>();
 
-            var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
-            var thumbnailContainerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
-            if (await thumbnailContainerClient.ExistsAsync())
+            if (!string.IsNullOrWhiteSpace(folderName))
             {
-                await foreach (var blobItem in thumbnailContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                // TODO: Extract to separate method
+                var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
+
+                if (await containerClient.ExistsAsync())
                 {
-                    var blobClient = thumbnailContainerClient.GetBlobClient(blobItem.Name);
-                    allMediaItems.Add((blobItem, blobClient, false));
+                    var prefix = $"{folderName.TrimEnd('/')}/";
+                    var mediaItems = new List<Photo>();
+
+                    await foreach (var item in containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/", traits: BlobTraits.All))
+                    {
+                        if (item is null || item.IsPrefix)
+                        {
+                            continue;
+                        }
+
+                        var blobItem = item.Blob;
+                        var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                        allMediaItems.Add((blobItem, blobClient, false));
+                    }
                 }
             }
-
-            var videosContainer = photoOptions.Value.StorageContainer.Videos;
-            var videosContainerClient = blobServiceClient.GetBlobContainerClient(videosContainer);
-            if (await videosContainerClient.ExistsAsync())
+            else
             {
-                await foreach (var blobItem in videosContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                // TODO: Extract to separate method
+                var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
+                var thumbnailContainerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
+                if (await thumbnailContainerClient.ExistsAsync())
                 {
-                    var blobClient = videosContainerClient.GetBlobClient(blobItem.Name);
-                    allMediaItems.Add((blobItem, blobClient, true));
+                    await foreach (var blobItem in thumbnailContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                    {
+                        var blobClient = thumbnailContainerClient.GetBlobClient(blobItem.Name);
+                        allMediaItems.Add((blobItem, blobClient, false));
+                    }
+                }
+
+                var videosContainer = photoOptions.Value.StorageContainer.Videos;
+                var videosContainerClient = blobServiceClient.GetBlobContainerClient(videosContainer);
+                if (await videosContainerClient.ExistsAsync())
+                {
+                    await foreach (var blobItem in videosContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+                    {
+                        var blobClient = videosContainerClient.GetBlobClient(blobItem.Name);
+                        allMediaItems.Add((blobItem, blobClient, true));
+                    }
                 }
             }
 
@@ -211,54 +240,6 @@ public class BlobStorageService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error listing top-level folders from gallery-container");
-            throw;
-        }
-    }
-
-    public async Task<IEnumerable<Photo>> GetGalleryFolderItemsAsync(string folderName)
-    {
-        if (string.IsNullOrWhiteSpace(folderName))
-        {
-            throw new ArgumentException("Folder name is required", nameof(folderName));
-        }
-
-        try
-        {
-            var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
-
-            if (!await containerClient.ExistsAsync())
-            {
-                logger.LogWarning("Container prod-gallery does not exist when listing items for folder {Folder}", folderName);
-                return [];
-            }
-
-            var prefix = $"{folderName.TrimEnd('/')}/";
-            var mediaItems = new List<Photo>();
-
-            await foreach (var item in containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/", traits: BlobTraits.All))
-            {
-                if (item is null || item.IsPrefix)
-                {
-                    continue;
-                }
-
-                var blobItem = item.Blob;
-                var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                var photo = CreatePhotoFromBlobItem(blobItem, blobClient, false);
-                mediaItems.Add(photo);
-            }
-
-            mediaItems = mediaItems
-                .OrderByDescending(m => m.UploadDate)
-                .ToList();
-
-            logger.LogInformation("Retrieved {Count} media items from folder {Folder}", mediaItems.Count, folderName);
-
-            return mediaItems;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error listing media items for folder {Folder}", folderName);
             throw;
         }
     }

@@ -73,6 +73,7 @@
 
 @code {
 	[Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
+    [Parameter] public string? GalleryFolderName { get; set; }
 
 	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
 	[Inject] private IPhotoGridService PhotoGridService { get; set; } = null!;
@@ -145,7 +146,7 @@
 			}
 			StateHasChanged();
 
-			var result = await StorageService.GetPhotosPagedAsync(page, _pageSize);
+            var result = await StorageService.GetPhotosPagedAsync(page, _pageSize, GalleryFolderName);
 
 			if (isInitialLoad)
 			{
