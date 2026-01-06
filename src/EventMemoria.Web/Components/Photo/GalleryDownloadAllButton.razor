@@ -64,7 +64,8 @@
         var eventTitle = CustomizationOptions.Value.Title;
         if (!string.IsNullOrWhiteSpace(eventTitle))
         {
-            var sanitizedTitle = string.Join("_", eventTitle.Split(Path.GetInvalidFileNameChars()));
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitizedTitle = new string(eventTitle.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
             return $"{sanitizedTitle}_photos.zip";
         }
         return "photos.zip";
