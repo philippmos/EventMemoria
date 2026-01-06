@@ -4,6 +4,7 @@ public record PhotoOptions
 {
     public StorageContainer StorageContainer { get; init; } = null!;
     public int DefaultPhotosPerRow { get; init; }
+    public string AllPhotosDownloadArchive { get; init; } = string.Empty;
 }
 
 public record StorageContainer

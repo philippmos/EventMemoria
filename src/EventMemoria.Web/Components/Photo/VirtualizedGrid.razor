@@ -16,8 +16,11 @@
     else if (_allPhotos.Any())
     {
         <MudStack Spacing="2" Class="pa-2">
-            <GridControlsComponent PhotosPerRow="@PhotosPerRow"
-                                        OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
+            @if (ShowGridControls)
+            {
+                <GridControlsComponent PhotosPerRow="@PhotosPerRow"
+                                       OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
+            }
 
             <div class="photo-grid">
                 <MudVirtualize
@@ -72,8 +75,9 @@
 
 
 @code {
-	[Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
+    [Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
     [Parameter] public string? GalleryFolderName { get; set; }
+    [Parameter] public bool ShowGridControls { get; set; }
 
 	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
 	[Inject] private IPhotoGridService PhotoGridService { get; set; } = null!;

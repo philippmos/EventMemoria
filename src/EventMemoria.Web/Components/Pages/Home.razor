@@ -15,8 +15,10 @@
 
 <UploadComponent @ref="_uploadComponent"
                         OnPhotosUploaded="@RefreshVirtualizedGridAsync" />
+
 <VirtualizedGrid @ref="_virtualizedGrid"
-                        OnPhotosLoaded="@OnPhotosLoaded" />
+                        OnPhotosLoaded="@OnPhotosLoaded"
+                        ShowGridControls="true" />
 
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
