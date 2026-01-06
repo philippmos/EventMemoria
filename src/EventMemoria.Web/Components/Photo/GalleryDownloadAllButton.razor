@@ -5,22 +5,23 @@
 
 @if (!string.IsNullOrWhiteSpace(DownloadLink))
 {
-    <a href="@DownloadLink" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-        <MudButton Variant="MudBlazor.Variant.Filled"
-                   Color="Color.Default"
-                   Size="Size.Small"
-                   StartIcon="@Icons.Material.Filled.Download"
-                   Class="mt-5"
-                   FullWidth="true">
-            <MudText>Alle herunterladen</MudText>
-        </MudButton>
-    </a>
+    <MudButton Variant="MudBlazor.Variant.Filled"
+               Color="Color.Default"
+               Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Download"
+               Class="mt-5"
+               FullWidth="true"
+               OnClick="DownloadArchiveAsync">
+        <MudText>Alle herunterladen</MudText>
+    </MudButton>
 }
 
 
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private string DownloadLink = string.Empty;
 
@@ -32,5 +33,23 @@
         }
 
         DownloadLink = PhotoOptions.Value.AllPhotosDownloadArchive;
+    }
+
+    private async Task DownloadArchiveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(DownloadLink))
+        {
+            return;
+        }
+
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("FileDownloader.downloadFile", DownloadLink, "photos.zip");
+            Snackbar.Add("Download gestartet.", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Download konnte nicht gestartet werden.", Severity.Warning);
+        }
     }
 }
