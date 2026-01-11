@@ -1,6 +1,8 @@
 @using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Common.Settings
 @using EventMemoria.Web.Helpers
 @using EventMemoria.Web.Services.Interfaces
+@using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
 <MudDialog>
@@ -104,7 +106,7 @@
 
                             @if (_downloadEnabled)
                             {
-                                <a href="@CurrentPhoto.Url"
+                                <a href="@DeriveFullSizeDownloadUrl(CurrentPhoto.Url)"
                                    style="text-decoration: none;"
                                    target="_blank"
                                    rel="noopener noreferrer">
@@ -171,6 +173,7 @@
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
 
     private int CurrentIndex { get; set; }
     private bool IsLoadingPage { get; set; }
@@ -316,5 +319,19 @@
         return index == CurrentIndex
             ? "pa-1 mud-elevation-4 mud-primary"
             : "pa-1 mud-elevation-1";
+    }
+
+    private string? DeriveFullSizeDownloadUrl(string thumbnailUrl)
+    {
+        if (string.IsNullOrEmpty(thumbnailUrl)
+            || !_downloadEnabled)
+        {
+            return null;
+        }
+
+        return thumbnailUrl.Replace(
+            PhotoOptions.Value.StorageContainer.GalleryThumbnails,
+            PhotoOptions.Value.StorageContainer.Gallery,
+            StringComparison.InvariantCultureIgnoreCase);
     }
 }

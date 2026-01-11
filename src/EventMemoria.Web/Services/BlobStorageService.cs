@@ -206,7 +206,7 @@ public class BlobStorageService(
 
     private async Task LoadMediaItemsFromFolderAsync(string folderName, List<(BlobItem blob, BlobClient client, bool isVideo)> allMediaItems)
     {
-        var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
+        var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.GalleryThumbnails);
 
         if (await containerClient.ExistsAsync())
         {
