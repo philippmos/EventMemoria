@@ -1,7 +1,9 @@
+using System.Web;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EventMemoria.Web.Common.Constants;
 using EventMemoria.Web.Common.Settings;
+using EventMemoria.Web.Extensions;
 using EventMemoria.Web.Helpers;
 using EventMemoria.Web.Models;
 using EventMemoria.Web.Services.Interfaces;
@@ -87,32 +89,19 @@ public class BlobStorageService(
         }
     }
 
-    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24)
+    public async Task<PagedResult<Photo>> GetPhotosPagedAsync(int page = 1, int pageSize = 24, string? folderName = null)
     {
         try
         {
             var allMediaItems = new List<(BlobItem blob, BlobClient client, bool isVideo)>();
 
-            var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
-            var thumbnailContainerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
-            if (await thumbnailContainerClient.ExistsAsync())
+            if (!string.IsNullOrWhiteSpace(folderName))
             {
-                await foreach (var blobItem in thumbnailContainerClient.GetBlobsAsync(traits: BlobTraits.All))
-                {
-                    var blobClient = thumbnailContainerClient.GetBlobClient(blobItem.Name);
-                    allMediaItems.Add((blobItem, blobClient, false));
-                }
+                await LoadMediaItemsFromFolderAsync(folderName, allMediaItems);
             }
-
-            var videosContainer = photoOptions.Value.StorageContainer.Videos;
-            var videosContainerClient = blobServiceClient.GetBlobContainerClient(videosContainer);
-            if (await videosContainerClient.ExistsAsync())
+            else
             {
-                await foreach (var blobItem in videosContainerClient.GetBlobsAsync(traits: BlobTraits.All))
-                {
-                    var blobClient = videosContainerClient.GetBlobClient(blobItem.Name);
-                    allMediaItems.Add((blobItem, blobClient, true));
-                }
+                await LoadMediaItemsFromContainersAsync(allMediaItems);
             }
 
             allMediaItems = allMediaItems
@@ -148,7 +137,14 @@ public class BlobStorageService(
 
     private static Photo CreatePhotoFromBlobItem(BlobItem blobItem, BlobClient blobClient, bool isVideo)
     {
-        var mediaTypeFromTag = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.MediaType).Value;
+        var mediaTypeFromTag = "Image";
+
+        try
+        {
+            mediaTypeFromTag = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.MediaType).Value;
+        }
+        catch (Exception) { }
+
         var actualIsVideo = isVideo || mediaTypeFromTag == "Video";
 
         return new ()
@@ -158,9 +154,100 @@ public class BlobStorageService(
             Url = blobClient.Uri.ToString(),
             UploadDate = blobItem.Properties.LastModified?.DateTime ?? DateTime.MinValue,
             FileSize = blobItem.Properties.ContentLength ?? 0,
-            Author = blobItem.Tags.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value,
+            Author = blobItem.Tags?.FirstOrDefault(x => x.Key == ApplicationConstants.ImageTags.Author).Value ?? string.Empty,
             MediaType = actualIsVideo ? MediaType.Video : MediaType.Image,
             ThumbnailUrl = actualIsVideo ? blobClient.Uri.ToString() : null
         };
+    }
+
+    public async Task<IEnumerable<string>> GetGallerySubFoldersAsync()
+    {
+        try
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.Gallery);
+
+            if (!await containerClient.ExistsAsync())
+            {
+                logger.LogWarning("Container {ContainerName} does not exist when listing top-level folders", containerClient.Name);
+                return [];
+            }
+
+            var folderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            await foreach (var item in containerClient.GetBlobsByHierarchyAsync(delimiter: "/"))
+            {
+                if (!item.IsPrefix || string.IsNullOrWhiteSpace(item.Prefix))
+                {
+                    continue;
+                }
+
+                var prefix = item.Prefix.TrimEnd('/');
+
+                if (!string.IsNullOrEmpty(prefix))
+                {
+                    folderNames.Add(prefix);
+                }
+            }
+
+            var orderedFolders = folderNames
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            logger.LogInformation("Retrieved {Count} top-level folders from gallery-container", orderedFolders.Count);
+
+            return orderedFolders;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error listing top-level folders from gallery-container");
+            throw;
+        }
+    }
+
+    private async Task LoadMediaItemsFromFolderAsync(string folderName, List<(BlobItem blob, BlobClient client, bool isVideo)> allMediaItems)
+    {
+        var containerClient = blobServiceClient.GetBlobContainerClient(photoOptions.Value.StorageContainer.GalleryThumbnails);
+
+        if (await containerClient.ExistsAsync())
+        {
+            var prefix = $"{folderName.TrimEnd('/')}/";
+
+            await foreach (var item in containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/", traits: BlobTraits.All))
+            {
+                if (item is null || item.IsPrefix)
+                {
+                    continue;
+                }
+
+                var blobItem = item.Blob;
+                var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                allMediaItems.Add((blobItem, blobClient, false));
+            }
+        }
+    }
+
+    private async Task LoadMediaItemsFromContainersAsync(List<(BlobItem blob, BlobClient client, bool isVideo)> allMediaItems)
+    {
+        var thumbnailContainer = photoOptions.Value.StorageContainer.Thumbnails;
+        var thumbnailContainerClient = blobServiceClient.GetBlobContainerClient(thumbnailContainer);
+        if (await thumbnailContainerClient.ExistsAsync())
+        {
+            await foreach (var blobItem in thumbnailContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+            {
+                var blobClient = thumbnailContainerClient.GetBlobClient(blobItem.Name);
+                allMediaItems.Add((blobItem, blobClient, false));
+            }
+        }
+
+        var videosContainer = photoOptions.Value.StorageContainer.Videos;
+        var videosContainerClient = blobServiceClient.GetBlobContainerClient(videosContainer);
+        if (await videosContainerClient.ExistsAsync())
+        {
+            await foreach (var blobItem in videosContainerClient.GetBlobsAsync(traits: BlobTraits.All))
+            {
+                var blobClient = videosContainerClient.GetBlobClient(blobItem.Name);
+                allMediaItems.Add((blobItem, blobClient, true));
+            }
+        }
     }
 }

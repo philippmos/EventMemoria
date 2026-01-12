@@ -1,0 +1,36 @@
+@using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Common.Settings
+@using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
+
+@if (!string.IsNullOrWhiteSpace(DownloadLink))
+{
+    <a href="@DownloadLink" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+        <MudButton Variant="MudBlazor.Variant.Filled"
+                   Color="Color.Default"
+                   Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Download"
+                   Class="mt-5"
+                   FullWidth="true">
+            <MudText>Alle herunterladen</MudText>
+        </MudButton>
+    </a>
+}
+
+
+@code {
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+
+    private string DownloadLink = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnablePhotoDownload))
+        {
+            return;
+        }
+
+        DownloadLink = PhotoOptions.Value.AllPhotosDownloadArchive;
+    }
+}

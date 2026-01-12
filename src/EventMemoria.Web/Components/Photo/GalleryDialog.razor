@@ -1,173 +1,161 @@
 @using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Common.Settings
 @using EventMemoria.Web.Helpers
 @using EventMemoria.Web.Services.Interfaces
+@using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
 <MudDialog>
     <TitleContent>
         <div class="d-flex align-center">
             <MudText Typo="Typo.h6">
-                @if (TotalPages > 1)
-                {
-                    <span class="text-muted ml-2">(Seite @CurrentPage von @TotalPages)</span>
-                }
+                Fotogalerie
             </MudText>
-            <MudSpacer />
-            @if (TotalPages > 1)
-            {
-                <MudButtonGroup Size="Size.Small" Variant="MudBlazor.Variant.Outlined">
-                    <MudButton OnClick="LoadPreviousPageAsync"
-                              Disabled="@(CurrentPage <= 1 || IsLoadingPage)"
-                              StartIcon="Icons.Material.Filled.NavigateBefore">
-                        Vorherige Seite
-                    </MudButton>
-                    <MudButton OnClick="LoadNextPageAsync"
-                              Disabled="@(CurrentPage >= TotalPages || IsLoadingPage)"
-                              EndIcon="Icons.Material.Filled.NavigateNext">
-                        Nächste Seite
-                    </MudButton>
-                </MudButtonGroup>
-            }
         </div>
     </TitleContent>
     <DialogContent>
         <div class="photo-gallery d-flex flex-column align-center">
-            @if (IsLoadingPage)
-            {
-                <div class="photo-gallery__loading-container">
-                    <MudProgressCircular Size="Size.Large" Indeterminate="true" />
-                </div>
-            }
-            else
-            {
-                <div class="photo-gallery__main-container d-flex align-center justify-center">
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+            <div class="photo-gallery__main-container d-flex align-center justify-center">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
                                   Color="Color.Primary"
                                   Size="Size.Large"
                                   OnClick="PreviousPhoto"
                                   Disabled="@(!CanNavigateLeft())"
                                   Class="photo-gallery__nav-button photo-gallery__nav-button--left" />
 
-                    @if (CurrentPhoto.MediaType == MediaType.Video)
-                    {
-                        <div class="photo-gallery__video-container">
-                            <video controls
-                                   class="photo-gallery__main-video"
-                                   preload="metadata">
-                                <source src="@CurrentPhoto.Url" type="video/mp4" />
-                                <source src="@CurrentPhoto.Url" type="video/webm" />
-                                <source src="@CurrentPhoto.Url" type="video/ogg" />
-                                Dein Browser unterstützt die Video-Wiedergabe nicht.
-                            </video>
-                        </div>
-                    }
-                    else
-                    {
-                        <MudImage Src="@CurrentPhoto.Url"
-                                 Alt="@CurrentPhoto.Alt"
-                                 Class="photo-gallery__main-image" />
-                    }
-
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
-                                  Color="Color.Primary"
-                                  Size="Size.Large"
-                                  OnClick="NextPhoto"
-                                  Disabled="@(!CanNavigateRight())"
-                                  Class="photo-gallery__nav-button photo-gallery__nav-button--right" />
-                </div>
-
-                <MudPaper Class="photo-gallery__info-panel pa-3 mt-3" Elevation="1">
-                    <div class="photo-gallery__info-content">
-                        <MudText Typo="Typo.body1" Class="photo-gallery__filename">
-                            <strong>@CurrentPhoto.FileName</strong>
-                            @if (CurrentPhoto.MediaType == MediaType.Video)
-                            {
-                                <MudIcon Icon="@Icons.Material.Filled.VideoFile" 
-                                        Size="Size.Small" 
-                                        Style="margin-left: 8px; vertical-align: text-bottom;" />
-                            }
-                        </MudText>
-                        <div class="photo-gallery__meta-info">
-                            <MudText Typo="Typo.body2" Class="text-muted">
-                                @MediaHelper.FormatFileSize(CurrentPhoto.FileSize)
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="text-muted">
-                                @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="text-muted">
-                                @(CurrentPhoto.MediaType == MediaType.Video ? "Video" : "Bild")
-                            </MudText>
-
-							@if (_showAuthorInfo)
-							{
-								<MudText Typo="Typo.body2" Class="text-muted">
-									<strong>Author:</strong> @CurrentPhoto.Author
-								</MudText>
-							}
-                        </div>
-                    </div>
-                </MudPaper>
-
-                @if (Photos.Count > 1)
+                @if (CurrentPhoto.MediaType == MediaType.Video)
                 {
-                    <div class="photo-gallery__thumbnails d-flex justify-center mt-4">
-                        @for (var i = 0; i < Photos.Count; i++)
-                        {
-                            var index = i;
-                            <MudPaper Class="@($"{GetThumbnailClass(index)} photo-gallery__thumbnail")"
-                                     @onclick="() => SetCurrentPhoto(index)">
-                                <div style="position: relative;">
-                                    @if (Photos[index].MediaType == MediaType.Video)
-                                    {
-                                        <video width="60" height="60" 
-                                               style="object-fit: cover; border-radius: 4px;"
-                                               preload="metadata"
-                                               muted>
-                                            <source src="@Photos[index].Url" type="video/mp4" />
-                                            <source src="@Photos[index].Url" type="video/webm" />
-                                            <source src="@Photos[index].Url" type="video/ogg" />
-                                        </video>
-                                        <MudIcon Icon="@Icons.Material.Filled.PlayArrow" 
-                                                Style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 2px; font-size: 1rem;" />
-                                    }
-                                    else
-                                    {
-                                        <MudImage Src="@Photos[index].Url"
-                                                 Alt="Thumbnail"
-                                                 Width="60"
-                                                 Height="60"
-                                                 ObjectFit="ObjectFit.Cover" />
-                                    }
-                                </div>
-                            </MudPaper>
-                        }
+                    <div class="photo-gallery__video-container">
+                        <video controls
+                                class="photo-gallery__main-video"
+                                preload="metadata">
+                            <source src="@CurrentPhoto.Url" type="video/mp4" />
+                            <source src="@CurrentPhoto.Url" type="video/webm" />
+                            <source src="@CurrentPhoto.Url" type="video/ogg" />
+                            Dein Browser unterstützt die Video-Wiedergabe nicht.
+                        </video>
                     </div>
                 }
+                else
+                {
+                    <MudImage Src="@CurrentPhoto.Url"
+                                Alt="@CurrentPhoto.Alt"
+                                Class="photo-gallery__main-image" />
+                }
+
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                Color="Color.Primary"
+                                Size="Size.Large"
+                                OnClick="NextPhoto"
+                                Disabled="@(!CanNavigateRight())"
+                                Class="photo-gallery__nav-button photo-gallery__nav-button--right" />
+            </div>
+
+            <MudPaper Class="photo-gallery__info-panel pa-3 mt-3" Elevation="1">
+                <div class="photo-gallery__info-content">
+                    <MudText Typo="Typo.body1" Class="photo-gallery__filename">
+                        <strong>@CurrentPhoto.FileName</strong>
+                        @if (CurrentPhoto.MediaType == MediaType.Video)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.VideoFile" 
+                                    Size="Size.Small" 
+                                    Style="margin-left: 8px; vertical-align: text-bottom;" />
+                        }
+                    </MudText>
+                    <div class="photo-gallery__meta-info">
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            @MediaHelper.FormatFileSize(CurrentPhoto.FileSize)
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            @CurrentPhoto.UploadDate.ToString(ApplicationConstants.Ui.DateFormat)
+                        </MudText>
+
+						@if (_showAuthorInfo)
+						{
+							<MudText Typo="Typo.body2" Class="text-muted">
+								<strong>Author:</strong> @CurrentPhoto.Author
+							</MudText>
+						}
+
+                        @if (_downloadEnabled)
+                        {
+                            <a href="@DeriveFullSizeDownloadUrl(CurrentPhoto.Url)"
+                                style="text-decoration: none;"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <MudIconButton Icon="@Icons.Material.Filled.Download"
+                                                Color="Color.Primary"
+                                                Size="Size.Small"
+                                                Variant="MudBlazor.Variant.Outlined"
+                                                title="Download" />
+                            </a>
+                        }
+                    </div>
+                </div>
+            </MudPaper>
+
+            @if (Photos.Count > 1)
+            {
+                <div class="photo-gallery__thumbnails d-flex justify-center mt-4">
+
+                    @for (var i = 0; i < Photos.Count; i++)
+                    {
+                        var index = i;
+                        <MudPaper Class="@($"{GetThumbnailClass(index)} photo-gallery__thumbnail")"
+                                    @onclick="() => SetCurrentPhoto(index)">
+                            <div style="position: relative;">
+                                @if (Photos[index].MediaType == MediaType.Video)
+                                {
+                                    <video width="60" height="60" 
+                                            style="object-fit: cover; border-radius: 4px;"
+                                            preload="metadata"
+                                            muted>
+                                        <source src="@Photos[index].Url" type="video/mp4" />
+                                        <source src="@Photos[index].Url" type="video/webm" />
+                                        <source src="@Photos[index].Url" type="video/ogg" />
+                                    </video>
+                                    <MudIcon Icon="@Icons.Material.Filled.PlayArrow" 
+                                            Style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 2px; font-size: 1rem;" />
+                                }
+                                else
+                                {
+                                    <MudImage Src="@Photos[index].Url"
+                                                Alt="Thumbnail"
+                                                Width="60"
+                                                Height="60"
+                                                ObjectFit="ObjectFit.Cover" />
+                                }
+                            </div>
+                        </MudPaper>
+                    }
+
+                </div>
             }
         </div>
     </DialogContent>
 </MudDialog>
 
 @code {
-	[CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
+    [CascadingParameter] IDialogReference MudDialog { get; set; } = null!;
 
-	[Parameter] public List<Photo> Photos { get; set; } = [];
-	[Parameter] public int InitialIndex { get; set; }
-	[Parameter] public int CurrentPage { get; set; } = 1;
-	[Parameter] public int TotalPages { get; set; } = 1;
+    [Parameter] public List<Photo> Photos { get; set; } = [];
+    [Parameter] public int InitialIndex { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalPages { get; set; } = 1;
+    [Parameter] public EventCallback<int> OnLoadMorePhotos { get; set; }
 
-	[Inject] private IStorageService StorageService { get; set; } = null!;
-	[Inject] private ISnackbar Snackbar { get; set; } = null!;
-	[Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
-	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private IStorageService StorageService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
 
-	private int CurrentIndex { get; set; }
-	private bool IsLoadingPage { get; set; }
+    private int CurrentIndex { get; set; }
 
-	private Photo CurrentPhoto
-		=> Photos.Count > 0 && CurrentIndex < Photos.Count
-			? Photos[CurrentIndex]
-			: new ()
+    private Photo CurrentPhoto
+        => Photos.Count > 0 && CurrentIndex < Photos.Count
+            ? Photos[CurrentIndex]
+            : new ()
             {
                 Id = Guid.NewGuid().ToString(),
                 FileName = "",
@@ -176,30 +164,29 @@
                 FileSize = 0
             };
 
-	private bool _showAuthorInfo = false;
+    private bool _showAuthorInfo = false;
+    private bool _downloadEnabled = false;
 
-	protected override async Task OnInitializedAsync()
-	{
-		_showAuthorInfo = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAuthorInfo);
+    protected override async Task OnInitializedAsync()
+    {
+        _showAuthorInfo = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAuthorInfo);
+        _downloadEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.EnablePhotoDownload);
 
 		CurrentIndex = Math.Max(0, Math.Min(InitialIndex, Photos.Count - 1));
 	}
 
-    private void NextPhoto()
+    private async void NextPhoto()
     {
         if (CurrentIndex < Photos.Count - 1)
         {
             CurrentIndex++;
-            InvokeAsync(StateHasChanged);
-        }
-        else if (CurrentPage < TotalPages)
-        {
-            _ = Task.Run(async () =>
+            
+            if (OnLoadMorePhotos.HasDelegate)
             {
-                await LoadNextPageAsync();
-                CurrentIndex = 0;
-                await InvokeAsync(StateHasChanged);
-            });
+                await OnLoadMorePhotos.InvokeAsync(CurrentIndex);
+            }
+            
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -209,15 +196,6 @@
         {
             CurrentIndex--;
             InvokeAsync(StateHasChanged);
-        }
-        else if (CurrentPage > 1)
-        {
-            _ = Task.Run(async () =>
-            {
-                await LoadPreviousPageAsync();
-                CurrentIndex = Math.Max(0, Photos.Count - 1);
-                await InvokeAsync(StateHasChanged);
-            });
         }
     }
 
@@ -232,76 +210,30 @@
         InvokeAsync(StateHasChanged);
     }
 
-    private bool CanNavigateLeft() => CurrentIndex > 0 || CurrentPage > 1;
+    private bool CanNavigateLeft() => CurrentIndex > 0;
 
-    private bool CanNavigateRight() => CurrentIndex < Photos.Count - 1 || CurrentPage < TotalPages;
+    private bool CanNavigateRight() => CurrentIndex < Photos.Count - 1;
 
-    private async Task LoadPreviousPageAsync()
-    {
-        if (CurrentPage <= 1 || IsLoadingPage)
-        {
-            return;
-        }
 
-        try
-        {
-            IsLoadingPage = true;
-            StateHasChanged();
-
-            CurrentPage--;
-            var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
-            Photos = pagedResult.Items;
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Fehler beim Laden der vorherigen Seite", Severity.Error);
-            Logger.LogError(ex, "Fail when loading previous page");
-            CurrentPage++;
-            StateHasChanged();
-        }
-        finally
-        {
-            IsLoadingPage = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task LoadNextPageAsync()
-    {
-        if (CurrentPage >= TotalPages || IsLoadingPage)
-        {
-            return;
-        }
-
-        try
-        {
-            IsLoadingPage = true;
-            StateHasChanged();
-
-            CurrentPage++;
-			var pagedResult = await StorageService.GetPhotosPagedAsync(CurrentPage, ApplicationConstants.Pagination.DefaultPageSize);
-            Photos = pagedResult.Items;
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Fehler beim Laden der nächsten Seite", Severity.Error);
-            Logger.LogError(ex, "Fail when loading next page");
-            CurrentPage--;
-            StateHasChanged();
-        }
-        finally
-        {
-            IsLoadingPage = false;
-            StateHasChanged();
-        }
-    }
 
     private string GetThumbnailClass(int index)
     {
         return index == CurrentIndex
             ? "pa-1 mud-elevation-4 mud-primary"
             : "pa-1 mud-elevation-1";
+    }
+
+    private string? DeriveFullSizeDownloadUrl(string thumbnailUrl)
+    {
+        if (string.IsNullOrEmpty(thumbnailUrl)
+            || !_downloadEnabled)
+        {
+            return null;
+        }
+
+        return thumbnailUrl.Replace(
+            PhotoOptions.Value.StorageContainer.GalleryThumbnails,
+            PhotoOptions.Value.StorageContainer.Gallery,
+            StringComparison.InvariantCultureIgnoreCase);
     }
 }

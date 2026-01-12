@@ -114,6 +114,32 @@ Struktur aus secrets.example.json
    - **Development**: `https://localhost:7087` oder `http://localhost:5111`
    - **Docker**: `http://localhost:8080`
 
+#### Option 3: Docker Image von Docker Hub verwenden
+
+Das fertige Docker Image ist auf Docker Hub verfügbar und kann direkt verwendet werden:
+
+1. **Docker Image pullen**
+
+   ```bash
+   docker pull philippmos/eventmemoria:latest
+   ```
+
+2. **Container starten**
+
+   ```bash
+   docker run -d \
+     -p 8080:8080 \
+     -e ConnectionStrings__AzureStorage="CONNECTIONSTRING" \
+     --name eventmemoria \
+     philippmos/eventmemoria:latest
+   ```
+
+3. **Anwendung aufrufen**
+
+   Öffne `http://localhost:8080` in deinem Browser
+
+**Docker Hub Repository**: [https://hub.docker.com/repository/docker/philippmos/eventmemoria](https://hub.docker.com/repository/docker/philippmos/eventmemoria)
+
 ## Verwendung
 
 ### Fotos hochladen

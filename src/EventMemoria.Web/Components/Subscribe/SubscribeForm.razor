@@ -60,8 +60,8 @@
 	[Parameter] public EventCallback<bool> IsLoadingChanged { get; set; }
 	[Parameter] public string StatusMessage { get; set; } = string.Empty;
 	[Parameter] public Severity StatusSeverity { get; set; } = Severity.Info;
-	[Parameter] public EventCallback OnDownloadSuccess { get; set; }
-	[Parameter] public EventCallback OnDownloadError { get; set; }
+	[Parameter] public EventCallback OnSubscriptionSuccess { get; set; }
+	[Parameter] public EventCallback OnSubscriptionError { get; set; }
 	[Parameter] public EventCallback OnStatusMessageCleared { get; set; }
 
 	private MudForm form = null!;
@@ -99,18 +99,18 @@
 			{
 				await EmailAddressChanged.InvokeAsync(string.Empty);
 				Snackbar.Add("E-Mail-Benachrichtigung registriert", Severity.Success);
-				await OnDownloadSuccess.InvokeAsync();
+				await OnSubscriptionSuccess.InvokeAsync();
 			}
 			else
 			{
 				Snackbar.Add("Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
-				await OnDownloadError.InvokeAsync();
+				await OnSubscriptionError.InvokeAsync();
 			}
 		}
 		catch (Exception)
 		{
 			Snackbar.Add("Unerwarteter Fehler beim Registrieren der E-Mail-Adresse", Severity.Error);
-			await OnDownloadError.InvokeAsync();
+			await OnSubscriptionError.InvokeAsync();
 		}
 		finally
 		{

@@ -1,0 +1,55 @@
+@page "/gallery"
+
+@using EventMemoria.Web.Common.Constants
+@using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Components.Photo
+@using EventMemoria.Web.Services.Interfaces
+@using System.Linq
+@using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
+
+@rendermode InteractiveServer
+
+<CustomPageTitle Value="Galerie" />
+
+<HeaderComponent />
+
+<GallerySubNavigation OnSubFolderChanged="@SetSubFolderAsync" />
+
+@if (!string.IsNullOrWhiteSpace(_subItem))
+{
+    <VirtualizedGrid @key="@_subItem"
+                     @ref="_virtualizedGrid"
+                     OnPhotosLoaded="@OnPhotosLoaded"
+                     GalleryFolderName="@_subItem"
+                     ShowGridControls="false"/>
+}
+
+
+@code {
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    private string _subItem = string.Empty;
+    private VirtualizedGrid? _virtualizedGrid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableGalleryPage))
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+    }
+
+    private async Task SetSubFolderAsync(string value)
+    {
+        _subItem = value;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPhotosLoaded(List<Photo> photos)
+    {
+        StateHasChanged();
+    }
+}

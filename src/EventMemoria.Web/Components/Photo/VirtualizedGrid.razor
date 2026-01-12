@@ -16,8 +16,11 @@
     else if (_allPhotos.Any())
     {
         <MudStack Spacing="2" Class="pa-2">
-            <GridControlsComponent PhotosPerRow="@PhotosPerRow"
-                                        OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
+            @if (ShowGridControls)
+            {
+                <GridControlsComponent PhotosPerRow="@PhotosPerRow"
+                                       OnPhotosPerRowChanged="@SetPhotosPerRowAsync" />
+            }
 
             <div class="photo-grid">
                 <MudVirtualize
@@ -72,7 +75,9 @@
 
 
 @code {
-	[Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
+    [Parameter] public EventCallback<List<Photo>> OnPhotosLoaded { get; set; }
+    [Parameter] public string? GalleryFolderName { get; set; }
+    [Parameter] public bool ShowGridControls { get; set; }
 
 	[Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
 	[Inject] private IPhotoGridService PhotoGridService { get; set; } = null!;
@@ -145,7 +150,7 @@
 			}
 			StateHasChanged();
 
-			var result = await StorageService.GetPhotosPagedAsync(page, _pageSize);
+            var result = await StorageService.GetPhotosPagedAsync(page, _pageSize, GalleryFolderName);
 
 			if (isInitialLoad)
 			{
@@ -232,18 +237,13 @@
 			return;
 		}
 
-        var pageSize = ApplicationConstants.Pagination.MaxPageSize;
-        var currentPage = (initialIndex / pageSize) + 1;
-        var startIndex = (currentPage - 1) * pageSize;
-        var galleryPhotos = _allPhotos.Skip(startIndex).Take(pageSize).ToList();
-        var adjustedIndex = Math.Max(0, initialIndex - startIndex);
-
         var parameters = new DialogParameters<GalleryDialog>
         {
-            { x => x.Photos, galleryPhotos },
-            { x => x.InitialIndex, adjustedIndex },
-            { x => x.CurrentPage, currentPage },
-            { x => x.TotalPages, (int)Math.Ceiling((double)_allPhotos.Count / pageSize) }
+            { x => x.Photos, _allPhotos },
+            { x => x.InitialIndex, initialIndex },
+            { x => x.CurrentPage, _currentPage },
+            { x => x.TotalPages, _totalPages },
+            { x => x.OnLoadMorePhotos, EventCallback.Factory.Create<int>(this, LoadMorePhotosForGalleryAsync) }
         };
 
         var options = new DialogOptions
@@ -264,6 +264,20 @@
         _currentPage = 1;
         _totalPages = 0;
         await LoadPhotosPageAsync(1, true);
+    }
+
+    private async Task LoadMorePhotosForGalleryAsync(int currentPhotoIndex)
+    {
+        if (_currentPage >= _totalPages || _isLoadingMore)
+        {
+            return;
+        }
+
+        var photosNeeded = currentPhotoIndex >= _allPhotos.Count - 5;
+        if (photosNeeded)
+        {
+            await LoadNextPageIfAvailableAsync();
+        }
     }
 
     public async ValueTask DisposeAsync()

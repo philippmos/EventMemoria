@@ -1,28 +1,28 @@
-@page "/download"
+@page "/subscribe"
 
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Components.Subscribe
 @using Microsoft.Extensions.Options
-@using EventMemoria.Web.Components.Download
 @using Microsoft.FeatureManagement
 
 @rendermode InteractiveServer
 
-<CustomPageTitle Value="Download" />
+<CustomPageTitle Value="Abonnieren" />
 
 <HeaderComponent />
 	
 <div class="qr-code-container download-page-container">
 	<MudStack Spacing="4" AlignItems="AlignItems.Center" Class="download-content-stack">
 
-		<DownloadInfo />
+		<SubscribeInfo />
 
-		<DownloadForm @bind-EmailAddress="emailAddress"
+		<SubscribeForm @bind-EmailAddress="emailAddress"
 						@bind-IsLoading="isLoading"
 						StatusMessage="@statusMessage"
 						StatusSeverity="statusSeverity"
-						OnDownloadSuccess="HandleDownloadSuccess"
-						OnDownloadError="HandleDownloadError"
+                        OnSubscriptionSuccess="HandleSubscriptionSuccess"
+                        OnSubscriptionError="HandleSubscriptionError"
 						OnStatusMessageCleared="() => statusMessage = string.Empty" />
 
 
@@ -49,21 +49,21 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableDownloadPage))
+		if (!await FeatureManager.IsEnabledAsync(FeatureFlags.EnableSubscribePage))
 		{
 			NavigationManager.NavigateTo("/", true);
 			return;
 		}
 	}
 
-	private void HandleDownloadSuccess()
+	private void HandleSubscriptionSuccess()
 	{
 		statusMessage = "E-Mail-Adresse erfolgreich registriert! Du erhältst eine E-Mail mit dem Download-Link, sobald alle Bilder hochgeladen wurden.";
 		statusSeverity = Severity.Success;
 		StateHasChanged();
 	}
 
-	private void HandleDownloadError()
+	private void HandleSubscriptionError()
 	{
 		statusMessage = "Fehler beim Registrieren der E-Mail-Adresse. Bitte versuche es später erneut.";
 		statusSeverity = Severity.Error;

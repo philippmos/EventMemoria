@@ -13,7 +13,7 @@ COPY client/ ./client/
 RUN cd client && npm run build:prod
 
 # .NET Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY *.csproj ./
@@ -27,11 +27,8 @@ RUN dotnet build -c Release -o /app/build
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime Stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
-USER appuser
 
 COPY --from=build /app/publish .
 
