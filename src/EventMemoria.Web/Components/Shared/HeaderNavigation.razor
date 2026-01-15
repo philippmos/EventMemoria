@@ -29,7 +29,7 @@
 	{
 		if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableUploadPage))
 		{
-            NavigationElements.Add(new NavigationElement("Upload", "/", Icons.Material.Filled.PhotoLibrary));
+            NavigationElements.Add(new NavigationElement("Upload", "/upload", Icons.Material.Filled.PhotoLibrary));
         }
 
         if (await FeatureManager.IsEnabledAsync(FeatureFlags.EnableSubscribePage))
