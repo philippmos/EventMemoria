@@ -1,12 +1,18 @@
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Common.Constants
 @using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
+
 
 <MudPaper Class="header pa-6" Elevation="0">
     <div class="text-center">
 
-        <MudAvatar Size="Size.Large" Class="header__avatar mb-3">
-            <MudImage Src="@CustomizationOptions.Value.AvatarPath" Alt="@CustomizationOptions.Value.Names" />
-        </MudAvatar>
+        @if (_showAvatar)
+        {
+            <MudAvatar Size="Size.Large" Class="header__avatar mb-3">
+                <MudImage Src="@CustomizationOptions.Value.AvatarPath" Alt="@CustomizationOptions.Value.Names" />
+            </MudAvatar>
+        }
 
         <MudText Typo="Typo.h5" Class="header__name mb-2">
 			@CustomizationOptions.Value.Names
@@ -23,4 +29,12 @@
 
 @code {
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
+    [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
+
+    private bool _showAvatar = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _showAvatar = await FeatureManager.IsEnabledAsync(FeatureFlags.ShowAvatar);
+    }
 }

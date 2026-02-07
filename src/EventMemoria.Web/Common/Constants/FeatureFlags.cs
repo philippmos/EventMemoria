@@ -10,4 +10,6 @@ public static class FeatureFlags
     public const string EnableGalleryPage = nameof(EnableGalleryPage);
     public const string ShowAuthorInfo = nameof(ShowAuthorInfo);
     public const string EnableVideoUpload = nameof(EnableVideoUpload);
+    public const string ShowAvatar = nameof(ShowAvatar);
+    
 }
