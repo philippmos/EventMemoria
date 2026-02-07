@@ -10,26 +10,44 @@
     <MudStack Spacing="2" Class="pa-2">
         <MudPaper Class="pa-3" Elevation="1">
             <div class="d-flex flex-column">
-                <div class="grid-controls-container" @ref="_containerRef">
-                    <MudChipSet T="string"
-                                SelectedValue="@_selectedSubItem"
-                                SelectedValueChanged="@OnChipSelectedAsync"
-                                Class="grid-controls-chipset">
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <div class="grid-controls-container" @ref="_containerRef">
+                        <MudChipSet T="string"
+                                    SelectedValue="@_selectedSubItem"
+                                    SelectedValueChanged="@OnChipSelectedAsync"
+                                    Class="grid-controls-chipset">
 
-                        @foreach (var (subfolder, index) in _subfolders.Select((s, i) => (s, i)))
+                            @foreach (var (subfolder, index) in _subfolders.Select((s, i) => (s, i)))
+                            {
+                                <MudChip T="string"
+                                         Value="@subfolder"
+                                         Color="Color.Default"
+                                         Variant="MudBlazor.Variant.Filled"
+                                         Size="Size.Medium"
+                                         id="@($"chip-{index}")"
+                                         Class="grid-controls-chip">
+                                    @subfolder
+                                </MudChip>
+                            }
+                        </MudChipSet>
+                    </div>
+                </MudHidden>
+
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    <MudSelect T="string"
+                               Value="@_selectedSubItem"
+                               ValueChanged="@OnChipSelectedAsync"
+                               Label="Album auswählen"
+                               Variant="MudBlazor.Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter"
+                               FullWidth="true"
+                               Class="gallery-mobile-select">
+                        @foreach (var subfolder in _subfolders)
                         {
-                            <MudChip T="string"
-                                     Value="@subfolder"
-                                     Color="Color.Default"
-                                     Variant="MudBlazor.Variant.Filled"
-                                     Size="Size.Medium"
-                                     id="@($"chip-{index}")"
-                                     Class="grid-controls-chip">
-                                @subfolder
-                            </MudChip>
+                            <MudSelectItem T="string" Value="@subfolder">@subfolder</MudSelectItem>
                         }
-                    </MudChipSet>
-                </div>
+                    </MudSelect>
+                </MudHidden>
             </div>
 
             <GalleryDownloadAllButton />
