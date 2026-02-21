@@ -8,6 +8,11 @@
     <UserSecretsId>4c315dc5-12f2-4cb6-b99e-8838c136b18e</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.1" />
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
