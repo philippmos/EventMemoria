@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Settings;
 using EventMemoria.Web.Components;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.FeatureManagement;
@@ -35,6 +36,8 @@ public static class PmoWebApp
             options.MaxAge = TimeSpan.FromDays(365);
         });
 
+        builder.SetupAntiforgery();
+
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddConfigurations(builder.Configuration);
         builder.Services.AddDataProtection(builder.Configuration);
@@ -48,13 +51,14 @@ public static class PmoWebApp
     {
         var app = builder.Build();
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        if (builder.Configuration.GetValue<bool>("IsProduction"))
         {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        });
-
-        if (!app.Environment.IsDevelopment())
-        {
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+            
+            app.UseHttpsRedirection();
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
             app.UseHsts();
         }
@@ -68,6 +72,18 @@ public static class PmoWebApp
         app.MapHealthChecks("/health");
 
         return app;
+    }
+
+    private static void SetupAntiforgery(this WebApplicationBuilder builder)
+    {
+        var isProduction = builder.Configuration.GetValue<bool>("IsProduction");
+
+        builder.Services.AddAntiforgery(options =>
+        {
+            options.Cookie.SecurePolicy = isProduction ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
     }
 
     private static void AddConfigurations(this IServiceCollection services, IConfiguration configuration)
