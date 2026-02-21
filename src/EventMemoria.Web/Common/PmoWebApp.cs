@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using EventMemoria.Web.Common.Settings;
 using EventMemoria.Web.Components;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.FeatureManagement;
 using MudBlazor.Services;
 
@@ -27,6 +28,13 @@ public static class PmoWebApp
 
         builder.Services.AddFeatureManagement();
 
+        builder.Services.AddHsts(options =>
+        {
+            options.Preload = true;
+            options.IncludeSubDomains = true;
+            options.MaxAge = TimeSpan.FromDays(365);
+        });
+
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddConfigurations(builder.Configuration);
         builder.Services.AddDataProtection(builder.Configuration);
@@ -40,13 +48,16 @@ public static class PmoWebApp
     {
         var app = builder.Build();
 
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Error", createScopeForErrors: true);
             app.UseHsts();
         }
-
-        app.UseHttpsRedirection();
 
         app.UseAntiforgery();
 
