@@ -62,6 +62,7 @@
     [Parameter] public EventCallback<string> OnSubFolderChanged { get; set; }
 
     [Inject] private IStorageService StorageService { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private List<string> _subfolders = new();
     private string? _selectedSubItem;
@@ -86,5 +87,18 @@
         }
 
         await OnSubFolderChanged.InvokeAsync(value);
+
+        _ = LogSubFolderChangedAnalyticsAsync(value);
+    }
+
+    private async Task LogSubFolderChangedAnalyticsAsync(string value)
+    {
+        try
+        {
+            await AnalyticsService.LogEventAsync("GallerySubFolderChanged", value);
+        }
+        catch
+        {
+        }
     }
 }

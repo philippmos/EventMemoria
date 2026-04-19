@@ -1,26 +1,30 @@
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
 @if (!string.IsNullOrWhiteSpace(DownloadLink))
 {
-    <a href="@DownloadLink" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-        <MudButton Variant="MudBlazor.Variant.Filled"
-                   Color="Color.Default"
-                   Size="Size.Small"
-                   StartIcon="@Icons.Material.Filled.Download"
-                   Class="mt-5"
-                   FullWidth="true">
-            <MudText>Alle herunterladen</MudText>
-        </MudButton>
-    </a>
+    <MudButton Variant="MudBlazor.Variant.Filled"
+               Color="Color.Default"
+               Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Download"
+               Class="mt-5"
+               FullWidth="true"
+               Href="@DownloadLink"
+               Target="_blank"
+               Rel="noopener noreferrer"
+               OnClick="LogClickAsync">
+        <MudText>Alle herunterladen</MudText>
+    </MudButton>
 }
 
 
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private string DownloadLink = string.Empty;
 
@@ -32,5 +36,11 @@
         }
 
         DownloadLink = PhotoOptions.Value.AllPhotosDownloadArchive;
+    }
+
+    private async Task LogClickAsync()
+    {
+
+        await AnalyticsService.LogEventAsync("DownloadAllPhotosClicked");
     }
 }

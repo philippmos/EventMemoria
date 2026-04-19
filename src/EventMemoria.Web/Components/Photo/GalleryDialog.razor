@@ -79,16 +79,15 @@
 
                         @if (_downloadEnabled)
                         {
-                            <a href="@DeriveFullSizeDownloadUrl(CurrentPhoto.Url)"
-                                style="text-decoration: none;"
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <MudIconButton Icon="@Icons.Material.Filled.Download"
-                                                Color="Color.Primary"
-                                                Size="Size.Small"
-                                                Variant="MudBlazor.Variant.Outlined"
-                                                title="Download" />
-                            </a>
+                            <MudIconButton Icon="@Icons.Material.Filled.Download"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           Variant="MudBlazor.Variant.Outlined"
+                                           title="Download"
+                                           Href="@DeriveFullSizeDownloadUrl(CurrentPhoto.Url)"
+                                           Target="_blank"
+                                           Rel="noopener noreferrer"
+                                           OnClick="LogSinglePhotoDownloadClickAsync" />
                         }
                     </div>
                 </div>
@@ -149,6 +148,7 @@
     [Inject] private ILogger<GalleryDialog> Logger { get; set; } = null!;
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private IOptions<PhotoOptions> PhotoOptions { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private int CurrentIndex { get; set; }
 
@@ -235,5 +235,10 @@
             PhotoOptions.Value.StorageContainer.GalleryThumbnails,
             PhotoOptions.Value.StorageContainer.Gallery,
             StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    private async Task LogSinglePhotoDownloadClickAsync()
+    {
+        await AnalyticsService.LogEventAsync("SinglePhotoDownloadClicked", CurrentPhoto.FileName);
     }
 }
