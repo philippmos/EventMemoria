@@ -9,17 +9,24 @@ public class AnalyticsService(
     ILogger<AnalyticsService> logger) : IAnalyticsService
 {
     private const string TableName = "Analytics";
+    private readonly Lazy<Task<TableClient>> _tableClient = new(() => CreateTableClientAsync(tableServiceClient));
 
     public async Task<bool> LogEventAsync(string eventName, string? itemName = null)
     {
+        if (string.IsNullOrWhiteSpace(eventName))
+        {
+            logger.LogWarning("Cannot log analytics event with a null, empty, or whitespace event name");
+            return false;
+        }
+
         try
         {
-            var tableClient = await GetTableClientAsync();
+            var tableClient = await _tableClient.Value;
 
-            var subscriber = new AnalyticsLog(eventName, itemName);
-            await tableClient.AddEntityAsync(subscriber);
+            var logEvent = new AnalyticsLog(eventName, itemName);
+            await tableClient.AddEntityAsync(logEvent);
             
-            logger.LogInformation("Successfully logged event");
+            logger.LogDebug("Successfully logged event {EventName}", eventName);
             return true;
         }
         catch (Exception ex)
@@ -29,10 +36,9 @@ public class AnalyticsService(
         }
     }
 
-    private async Task<TableClient> GetTableClientAsync()
+    private static async Task<TableClient> CreateTableClientAsync(TableServiceClient tableServiceClient)
     {
         var tableClient = tableServiceClient.GetTableClient(TableName);
-        await tableClient.CreateIfNotExistsAsync();
         return tableClient;
     }
 }

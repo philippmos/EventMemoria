@@ -5,7 +5,7 @@ namespace EventMemoria.Web.Models;
 
 public class AnalyticsLog : ITableEntity
 {
-    public string PartitionKey { get; set; } = "AnalyticsLog";
+    public string PartitionKey { get; set; } = string.Empty;
     public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
@@ -18,6 +18,7 @@ public class AnalyticsLog : ITableEntity
     
     public AnalyticsLog(string eventName, string? itemName = null)
     {
+        PartitionKey = eventName;
         EventName = eventName;
         ItemName = itemName ?? string.Empty;
         RowKey = Guid.NewGuid().ToString();

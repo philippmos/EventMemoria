@@ -22,6 +22,6 @@ public static class DependencyInjection
         services.AddScoped<IFileValidationService, FileValidationService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
         services.AddScoped<ISubscriberService, SubscriberService>();
-        services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddSingleton<IAnalyticsService, AnalyticsService>();
     }
 }
