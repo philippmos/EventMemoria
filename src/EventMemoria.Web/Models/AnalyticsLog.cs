@@ -11,13 +11,15 @@ public class AnalyticsLog : ITableEntity
     public ETag ETag { get; set; }
     
     public string EventName { get; set; } = string.Empty;
+    public string ItemName { get; set; } = string.Empty;
     
     public AnalyticsLog()
     { }
     
-    public AnalyticsLog(string eventName)
+    public AnalyticsLog(string eventName, string? itemName = null)
     {
         EventName = eventName;
+        ItemName = itemName ?? string.Empty;
         RowKey = Guid.NewGuid().ToString();
     }
 }

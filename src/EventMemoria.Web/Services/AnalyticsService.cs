@@ -10,13 +10,13 @@ public class AnalyticsService(
 {
     private const string TableName = "Analytics";
 
-    public async Task<bool> LogEventAsync(string eventName)
+    public async Task<bool> LogEventAsync(string eventName, string? itemName = null)
     {
         try
         {
             var tableClient = await GetTableClientAsync();
 
-            var subscriber = new AnalyticsLog(eventName);
+            var subscriber = new AnalyticsLog(eventName, itemName);
             await tableClient.AddEntityAsync(subscriber);
             
             logger.LogInformation("Successfully logged event");
