@@ -18,10 +18,21 @@
 
     private string? RequestId { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         RequestId ??= Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
 
-        await AnalyticsService.LogPageViewAsync("Error");
+        _ = LogErrorPageViewAsync();
+    }
+
+    private async Task LogErrorPageViewAsync()
+    {
+        try
+        {
+            await AnalyticsService.LogPageViewAsync("Error");
+        }
+        catch
+        {
+        }
     }
 }
