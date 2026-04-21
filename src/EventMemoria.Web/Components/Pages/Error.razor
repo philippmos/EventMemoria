@@ -22,17 +22,6 @@
     {
         RequestId ??= Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
 
-        _ = LogErrorPageViewAsync();
-    }
-
-    private async Task LogErrorPageViewAsync()
-    {
-        try
-        {
-            await AnalyticsService.LogPageViewAsync("Error");
-        }
-        catch
-        {
-        }
+        _ = AnalyticsService.LogPageViewAsync("Error");
     }
 }

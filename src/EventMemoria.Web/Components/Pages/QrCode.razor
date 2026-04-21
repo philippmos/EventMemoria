@@ -96,7 +96,7 @@ else
 
 		await InvokeAsync(StateHasChanged);
 
-		await AnalyticsService.LogPageViewAsync("QR Code");
+		_ = AnalyticsService.LogPageViewAsync("QR Code");
 	}
 
 	private async Task DownloadSvgAsync()

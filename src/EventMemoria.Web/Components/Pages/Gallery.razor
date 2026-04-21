@@ -43,7 +43,7 @@
             return;
         }
 
-        await AnalyticsService.LogPageViewAsync("Gallery");
+        _ = AnalyticsService.LogPageViewAsync("Gallery");
     }
 
     private async Task SetSubFolderAsync(string value)
