@@ -3,6 +3,7 @@
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Components.NameModal
 @using EventMemoria.Web.Components.Photo
+@using EventMemoria.Web.Services.Interfaces
 @using Microsoft.FeatureManagement
 
 @rendermode InteractiveServer
@@ -23,6 +24,7 @@
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private VirtualizedGrid? _virtualizedGrid;
     private UploadComponent? _uploadComponent;
@@ -33,6 +35,8 @@
         {
             return;
         }
+
+        await AnalyticsService.LogPageViewAsync("Upload");
     }
 
     private async Task RefreshVirtualizedGridAsync()

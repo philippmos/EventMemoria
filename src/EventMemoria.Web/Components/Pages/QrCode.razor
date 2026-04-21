@@ -2,6 +2,7 @@
 
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
+@using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 @using QRCoder.Core
@@ -62,6 +63,7 @@ else
 	[Inject] private ISnackbar Snackbar { get; set; } = null!;
 	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 	[Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
 	private MarkupString? _svgCode;
 	private string? _svgContent;
@@ -93,6 +95,8 @@ else
 		Logger.LogInformation("QR Code generated for URL: {Url}", targetUrl);
 
 		await InvokeAsync(StateHasChanged);
+
+		await AnalyticsService.LogPageViewAsync("QR Code");
 	}
 
 	private async Task DownloadSvgAsync()

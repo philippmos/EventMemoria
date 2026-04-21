@@ -3,6 +3,7 @@
 @using EventMemoria.Web.Common.Constants
 @using EventMemoria.Web.Common.Settings
 @using EventMemoria.Web.Components.Subscribe
+@using EventMemoria.Web.Services.Interfaces
 @using Microsoft.Extensions.Options
 @using Microsoft.FeatureManagement
 
@@ -41,6 +42,7 @@
 	[Inject] private IOptions<CustomizationOptions> CustomizationOptions { get; set; } = null!;
 	[Inject] private IFeatureManager FeatureManager { get; set; } = null!;
 	[Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
 	private bool isLoading;
 	private string emailAddress = string.Empty;
@@ -54,6 +56,8 @@
 			NavigationManager.NavigateTo("/", true);
 			return;
 		}
+
+		await AnalyticsService.LogPageViewAsync("Subscribe");
 	}
 
 	private void HandleSubscriptionSuccess()
