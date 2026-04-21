@@ -48,6 +48,7 @@
 	private string emailAddress = string.Empty;
 	private string statusMessage = string.Empty;
 	private Severity statusSeverity = Severity.Info;
+	private bool _pageViewLogged;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -57,7 +58,17 @@
 			return;
 		}
 
-		_ = AnalyticsService.LogPageViewAsync("Subscribe");
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender || !RendererInfo.IsInteractive || _pageViewLogged)
+		{
+			return;
+		}
+
+		_pageViewLogged = true;
+		await AnalyticsService.LogPageViewAsync("Subscribe");
 	}
 
 	private void HandleSubscriptionSuccess()

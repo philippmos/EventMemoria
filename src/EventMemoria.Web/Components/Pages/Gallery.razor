@@ -34,6 +34,7 @@
 
     private string _subItem = string.Empty;
     private VirtualizedGrid? _virtualizedGrid;
+    private bool _pageViewLogged;
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,7 +44,17 @@
             return;
         }
 
-        _ = AnalyticsService.LogPageViewAsync("Gallery");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive || _pageViewLogged)
+        {
+            return;
+        }
+
+        _pageViewLogged = true;
+        await AnalyticsService.LogPageViewAsync("Gallery");
     }
 
     private async Task SetSubFolderAsync(string value)

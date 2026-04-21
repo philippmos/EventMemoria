@@ -28,6 +28,7 @@
 
     private VirtualizedGrid? _virtualizedGrid;
     private UploadComponent? _uploadComponent;
+    private bool _pageViewLogged;
 
     protected override async Task OnInitializedAsync()
     {
@@ -36,7 +37,17 @@
             return;
         }
 
-        _ = AnalyticsService.LogPageViewAsync("Upload");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive || _pageViewLogged)
+        {
+            return;
+        }
+
+        _pageViewLogged = true;
+        await AnalyticsService.LogPageViewAsync("Upload");
     }
 
     private async Task RefreshVirtualizedGridAsync()

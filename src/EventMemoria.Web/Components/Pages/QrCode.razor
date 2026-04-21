@@ -67,6 +67,7 @@ else
 
 	private MarkupString? _svgCode;
 	private string? _svgContent;
+	private bool _pageViewLogged;
 
 	private System.Drawing.Bitmap CreateLogo()
 	{
@@ -95,8 +96,17 @@ else
 		Logger.LogInformation("QR Code generated for URL: {Url}", targetUrl);
 
 		await InvokeAsync(StateHasChanged);
+	}
 
-		_ = AnalyticsService.LogPageViewAsync("QR Code");
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender || !RendererInfo.IsInteractive || _pageViewLogged)
+		{
+			return;
+		}
+
+		_pageViewLogged = true;
+		await AnalyticsService.LogPageViewAsync("QR Code");
 	}
 
 	private async Task DownloadSvgAsync()

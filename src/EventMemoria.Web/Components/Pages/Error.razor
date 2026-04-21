@@ -17,11 +17,21 @@
     [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private string? RequestId { get; set; }
+    private bool _pageViewLogged;
 
     protected override void OnInitialized()
     {
         RequestId ??= Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+    }
 
-        _ = AnalyticsService.LogPageViewAsync("Error");
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive || _pageViewLogged)
+        {
+            return;
+        }
+
+        _pageViewLogged = true;
+        await AnalyticsService.LogPageViewAsync("Error");
     }
 }
