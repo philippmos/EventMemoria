@@ -30,6 +30,7 @@
 @code {
     [Inject] private IFeatureManager FeatureManager { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IAnalyticsService AnalyticsService { get; set; } = null!;
 
     private string _subItem = string.Empty;
     private VirtualizedGrid? _virtualizedGrid;
@@ -41,6 +42,8 @@
             NavigationManager.NavigateTo("/", true);
             return;
         }
+
+        _ = AnalyticsService.LogPageViewAsync("Gallery");
     }
 
     private async Task SetSubFolderAsync(string value)
